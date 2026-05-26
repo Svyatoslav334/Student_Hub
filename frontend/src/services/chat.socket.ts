@@ -9,18 +9,10 @@ export const connectChat = (
     return socket;
   }
 
-  socket = io(
-    'http://localhost:3000',
-    {
-      transports: [
-        'websocket',
-      ],
-
-      auth: {
-        token,
-      },
-    },
-  );
+  socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
+    transports: ['websocket'],
+    auth: { token },
+  });
 
   socket.on(
     'connect',
