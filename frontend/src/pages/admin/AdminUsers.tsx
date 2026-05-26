@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 
 import {
   Search,
-  Shield,
   User,
-  GraduationCap,
   Trash2,
   Edit,
 } from 'lucide-react';
