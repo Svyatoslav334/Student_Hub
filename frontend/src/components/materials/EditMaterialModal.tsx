@@ -26,7 +26,7 @@ const EditMaterialModal = ({ isOpen, onClose, material, onSuccess }: EditMateria
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [, setCategoriesLoading] = useState(false);
 
   useEffect(() => {
     if (material && isOpen) {
