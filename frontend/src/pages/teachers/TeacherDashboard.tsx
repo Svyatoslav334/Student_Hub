@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Newspaper, Users, Award, Plus } from 'lucide-react';
+import { BookOpen, Users, Award } from 'lucide-react';
 import { api } from '../../services/api';
 import { Link } from 'react-router-dom';
 
@@ -9,7 +9,7 @@ const TeacherDashboard = () => {
     clubs: 0,
     students: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
