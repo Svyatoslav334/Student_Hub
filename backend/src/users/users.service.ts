@@ -4,8 +4,8 @@ import { DataSource, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role, User } from './users.entity';
 import { Profile } from '../profile/profile.entity';
-import { RegisterDto } from 'src/auth/dto/register.dto';
-import { Teacher } from 'src/teachers/teachers.entity';
+import { RegisterDto } from '../auth/dto/register.dto';
+import { Teacher } from '../teachers/teachers.entity';
 
 @Injectable()
 export class UsersService {
