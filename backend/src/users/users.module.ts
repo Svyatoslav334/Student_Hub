@@ -4,7 +4,7 @@ import { User } from './users.entity';
 import { Profile } from '../profile/profile.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { Teacher } from 'src/teachers/teachers.entity';
+import { Teacher } from '../teachers/teachers.entity';
 
 @Module({
   imports: [
