@@ -11,8 +11,7 @@ import {
   HelpCircle, 
   FileText,
   ArrowRight,
-  Trophy,
-  Calendar
+  Trophy
 } from 'lucide-react';
 
 interface NewsItem {
