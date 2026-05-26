@@ -4,7 +4,6 @@ import { api } from '../../services/api';
 
 import { 
   Newspaper, 
-  ArrowRight, 
   Calendar,
   Tag
 } from 'lucide-react';
