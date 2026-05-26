@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne, ManyToMany } from 'typeorm';
 import { Profile } from '../profile/profile.entity';
-import { Teacher } from 'src/teachers/teachers.entity';
+import { Teacher } from '../teachers/teachers.entity';
 import { Club } from '../clubs/clubs.entity';
 
 export enum Role {
