@@ -21,8 +21,8 @@ import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 
 import { QueryMaterialDto } from './dto/query-material.dto';
-import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
-import { Role } from 'src/users/users.entity';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { Role } from '../users/users.entity';
 
 @Injectable()
 export class MaterialsService {
