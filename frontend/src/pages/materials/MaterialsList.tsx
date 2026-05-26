@@ -4,8 +4,6 @@ import {
   BookOpen, 
   Search, 
   Download, 
-  Calendar, 
-  User, 
   X 
 } from 'lucide-react';
 
