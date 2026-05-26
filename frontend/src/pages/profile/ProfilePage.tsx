@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../services/api';
-import { Save, User, Edit2, X } from 'lucide-react';
+import { User, Edit2, X } from 'lucide-react';
 
 const ProfilePage = () => {
   const { user } = useAuthStore();
