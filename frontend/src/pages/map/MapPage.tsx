@@ -361,6 +361,7 @@ const MapPage = () => {
   const panStartRef = useRef({ x: 0, y: 0 });
   const lastTouchDistRef = useRef<number | null>(null);
   const lastTouchMidRef = useRef<{ x: number; y: number } | null>(null);
+  const isDesktop = window.innerWidth >= 768;
 
   const svgContainerRef = useRef<HTMLDivElement>(null);
 
@@ -750,14 +751,33 @@ const MapPage = () => {
           DRAWER — пошук знизу (мобайл-фірст)
       ══════════════════════════════════════════════════════ */}
       <div
-        className="absolute left-0 right-0 bottom-0 z-30 transition-transform duration-300 ease-in-out"
-        style={{ transform: drawerOpen ? 'translateY(0)' : 'translateY(calc(100% - 60px))' }}
-        data-no-pan>
-
-        
+        className="
+          absolute z-30 transition-transform duration-300 ease-in-out
+          
+          left-0 right-0 bottom-0
+          
+          md:left-auto
+          md:right-4
+          md:top-24
+          md:bottom-4
+          md:w-[380px]
+        "
+        style={{
+          transform: isDesktop
+            ? 'none'
+            : drawerOpen
+              ? 'translateY(0)'
+              : 'translateY(calc(100% - 60px))'
+        }}
+        data-no-pan
+      >
         <div
           className="flex items-center justify-between px-5 py-3 bg-slate-900 border-t border-slate-700/60 cursor-pointer rounded-t-3xl"
-          onClick={() => setDrawerOpen(v => !v)}>
+          onClick={() => {
+            if (!isDesktop) {
+              setDrawerOpen(v => !v);
+            }
+          }}>
           <div className="flex items-center gap-2">
             <Navigation size={16} className="text-cyan-400" />
             <span className="text-sm font-bold text-slate-200">
