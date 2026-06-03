@@ -11,6 +11,11 @@ import { TeachersModule } from './teachers/teachers.module';
 import { ClubsModule } from './clubs/clubs.module';
 import { FaqModule } from './faq/faq.module';
 import { DocumentsModule } from './documents/documents.module';
+import { StudentGroupsModule } from './student-groups/student-groups.module';
+import { CampusMapModule } from './campus-map/campus-map.module';
+
+import { SupabaseStorageService } from './common/supabase-storage.service';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -40,7 +45,7 @@ import { DocumentsModule } from './documents/documents.module';
         synchronize: true,
       }),
     }),
-
+    CommonModule,
     AuthModule,
     UsersModule,
     ProfileModule,
@@ -50,6 +55,11 @@ import { DocumentsModule } from './documents/documents.module';
     ClubsModule,
     FaqModule,
     DocumentsModule,
+    StudentGroupsModule,
+    CampusMapModule,
   ],
+
+  providers: [SupabaseStorageService],
+  exports: [SupabaseStorageService],
 })
 export class AppModule {}

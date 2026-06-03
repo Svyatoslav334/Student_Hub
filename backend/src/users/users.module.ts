@@ -5,10 +5,11 @@ import { Profile } from '../profile/profile.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { Teacher } from '../teachers/teachers.entity';
+import { StudentGroup } from '../student-groups/student-group.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Profile, Teacher])
+    TypeOrmModule.forFeature([User, Profile, StudentGroup, Teacher])
   ],
   providers: [UsersService],
   controllers: [UsersController],

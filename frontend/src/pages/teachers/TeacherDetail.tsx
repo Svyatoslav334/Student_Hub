@@ -7,13 +7,30 @@ import {
   MapPin, 
   Mail, 
   Phone, 
-  Calendar,
-  User 
-} from 'lucide-react';
+  Calendar} from 'lucide-react';
+
+interface TeacherDetail {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  department: string;
+  subject: string;
+  cabinet?: string;
+  phone?: string;
+  email?: string;
+  photo?: string;
+  avatar?: string;
+  user?: {
+    avatar?: string;
+  };
+  bio?: string;
+  consultationHours?: string;
+  createdAt: string;
+}
 
 const TeacherDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [teacher, setTeacher] = useState<any>(null);
+  const [teacher, setTeacher] = useState<TeacherDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +49,25 @@ const TeacherDetail = () => {
       setLoading(false);
     }
   };
+
+  
+  const getAvatarUrl = (t: TeacherDetail | null): string | undefined => {
+    if (!t) return undefined;
+    return t.avatar || t.photo || t.user?.avatar || undefined;
+  };
+
+  const getAvatarColor = (name: string): string => {
+    const str = name.trim() || 'Unknown';
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 85%, 58%)`;
+  };
+
+  const fullName = `${teacher?.firstName || ''} ${teacher?.lastName || ''}`.trim();
+  const initials = `${teacher?.firstName?.[0] || ''}${teacher?.lastName?.[0] || ''}` || '👨‍🏫';
 
   if (loading) {
     return (
@@ -54,6 +90,8 @@ const TeacherDetail = () => {
     );
   }
 
+  const avatarUrl = getAvatarUrl(teacher);
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-5xl px-6 py-10">
@@ -68,17 +106,21 @@ const TeacherDetail = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div className="grid md:grid-cols-5 gap-0">
             
+            
             <div className="md:col-span-2 bg-slate-800 p-8 flex items-center justify-center">
               <div className="relative w-full max-w-[320px]">
-                {teacher.photo ? (
+                {avatarUrl ? (
                   <img
-                    src={teacher.photo}
-                    alt={`${teacher.firstName} ${teacher.lastName}`}
+                    src={avatarUrl}
+                    alt={fullName}
                     className="w-full aspect-square object-cover rounded-2xl shadow-2xl border border-slate-700"
                   />
                 ) : (
-                  <div className="w-full aspect-square bg-slate-700 rounded-2xl flex items-center justify-center">
-                    <User size={120} className="text-slate-500" />
+                  <div 
+                    className="w-full aspect-square rounded-2xl flex items-center justify-center text-white text-8xl font-medium shadow-inner"
+                    style={{ backgroundColor: getAvatarColor(fullName) }}
+                  >
+                    {initials}
                   </div>
                 )}
               </div>
@@ -155,11 +197,9 @@ const TeacherDetail = () => {
 
               {teacher.bio && (
                 <div className="mt-12">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    Про викладача
-                  </h3>
+                  <h3 className="text-xl font-semibold mb-4">Про викладача</h3>
                   <div className="prose prose-invert max-w-none text-slate-300 leading-relaxed">
-                    {teacher.bio.split('\n').map((paragraph: string, index: number) => (
+                    {teacher.bio.split('\n').map((paragraph, index) => (
                       <p key={index}>{paragraph}</p>
                     ))}
                   </div>

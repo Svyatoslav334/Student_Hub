@@ -5,11 +5,8 @@ export interface ChatMessage {
 
   author: {
     id: number;
-
-    profile?: {
-      firstName?: string;
-      lastName?: string;
-      avatar?: string;
-    };
+    firstName?: string;
+    lastName?: string;
+    avatar?: string;
   };
 }

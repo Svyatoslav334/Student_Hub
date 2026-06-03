@@ -23,6 +23,7 @@ import { UpdateMaterialDto } from './dto/update-material.dto';
 import { QueryMaterialDto } from './dto/query-material.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Role } from '../users/users.entity';
+import { SupabaseStorageService } from '../common/supabase-storage.service';
 
 @Injectable()
 export class MaterialsService {
@@ -32,49 +33,30 @@ export class MaterialsService {
 
     @InjectRepository(MaterialCategory)
     private categoryRepo: Repository<MaterialCategory>,
+
+    private storage: SupabaseStorageService,
   ) {}
 
-  async create(
-    data: CreateMaterialDto,
-    userId: number,
-    file?: Express.Multer.File,
-  ) {
-    const category =
-      await this.categoryRepo.findOne({
-        where: {
-          id: data.categoryId,
-        },
-      });
+  async create(data: CreateMaterialDto, userId: number, file?: Express.Multer.File) {
+    const category = await this.categoryRepo.findOne({ where: { id: data.categoryId } });
+    if (!category) throw new NotFoundException('Category not found');
 
-    if (!category) {
-      throw new NotFoundException(
-        'Category not found',
-      );
+    let fileUrl: string | null = null;
+    if (file) {
+      fileUrl = await this.storage.upload(file, 'materials');
     }
 
-    const material =
-      this.materialRepo.create({
-        title: data.title,
-        description: data.description,
-
-        category,
-        type: data.type || MaterialType.OTHER,
-
-        author: {
-          id: userId,
-        } as any,
-
-        file: file
-          ? `/uploads/materials/${file.filename}`
-          : null,
-
-        originalFileName:
-          file?.originalname,
-
-        mimeType: file?.mimetype,
-
-        size: file?.size,
-      });
+    const material = this.materialRepo.create({
+      title: data.title,
+      description: data.description,
+      category,
+      type: data.type || MaterialType.OTHER,
+      author: { id: userId } as any,
+      file: fileUrl,
+      originalFileName: file?.originalname ?? null,
+      mimeType: file?.mimetype ?? null,
+      size: file?.size ?? null,
+    });
 
     return this.materialRepo.save(material);
   }
@@ -162,12 +144,7 @@ export class MaterialsService {
     return material;
   }
 
-  async update(
-    id: number,
-    data: UpdateMaterialDto,
-    user: JwtPayload,
-    file?: Express.Multer.File,
-  ) {
+  async update(id: number, data: UpdateMaterialDto, user: JwtPayload, file?: Express.Multer.File) {
     const material = await this.findOne(id);
 
     if (user.role === Role.TEACHER && material.author?.id !== user.sub) {
@@ -178,14 +155,13 @@ export class MaterialsService {
     if (data.description) material.description = data.description;
     if (data.type) material.type = data.type;
     if (data.categoryId) {
-      const category = await this.categoryRepo.findOne({
-        where: { id: data.categoryId },
-      });
+      const category = await this.categoryRepo.findOne({ where: { id: data.categoryId } });
       if (category) material.category = category;
     }
 
     if (file) {
-      material.file = `/uploads/materials/${file.filename}`;
+      if (material.file) await this.storage.delete(material.file);
+      material.file = await this.storage.upload(file, 'materials');
       material.originalFileName = file.originalname;
       material.mimeType = file.mimetype;
       material.size = file.size;

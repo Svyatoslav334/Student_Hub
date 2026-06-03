@@ -13,7 +13,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { extname } from 'path';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -45,20 +45,11 @@ export class DocumentsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/documents',
-        filename: (req, file, callback) => {
-          const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          callback(null, uniqueName + extname(file.originalname));
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
-  create(
-    @Body() body: CreateDocumentDto,
-    @CurrentUser() user: JwtPayload,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
+  create(@Body() body: CreateDocumentDto, @CurrentUser() user: JwtPayload, @UploadedFile() file?) {
     return this.documentsService.create(body, user.sub, file);
   }
 

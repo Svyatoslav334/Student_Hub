@@ -18,10 +18,8 @@ interface News {
   createdAt: string;
   author?: {
     email: string;
-    profile?: {
-      firstName?: string;
-      lastName?: string;
-    };
+    firstName?: string;
+    lastName?: string;
   };
 }
 
@@ -183,9 +181,9 @@ const NewsList = () => {
                         month: 'long',
                       })}
                     </div>
-                    {item.author?.profile && (
+                    {item.author && (
                       <span>
-                        {item.author.profile.firstName} {item.author.profile.lastName}
+                        {item.author.firstName} {item.author.lastName}
                       </span>
                     )}
                   </div>

@@ -9,7 +9,7 @@ const TeacherLayout = () => {
       <Header />
       <div className="flex">
         <TeacherSidebar />
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 p-6 lg:p-8 overflow-auto pb-20 lg:pb-8">
           <Outlet />
         </main>
       </div>

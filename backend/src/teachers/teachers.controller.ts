@@ -16,7 +16,7 @@ import {
 
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 
 import { extname } from 'path';
 
@@ -85,48 +85,12 @@ export class TeachersController {
   @Post()
   @UseInterceptors(
     FileInterceptor('photo', {
-      storage: diskStorage({
-        destination:
-          './uploads/teachers',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const uniqueName =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          callback(
-            null,
-            uniqueName +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  create(
-    @Body()
-    body: CreateTeacherDto,
-
-    @UploadedFile()
-    file?: Express.Multer.File,
-  ) {
-    if (file) {
-      body.photo =
-        `/uploads/teachers/${file.filename}`;
-    }
-
-    return this.teachersService.create(
-      body,
-    );
+  create(@Body() body: CreateTeacherDto, @UploadedFile() file?) {
+    return this.teachersService.create(body, file); 
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -134,52 +98,12 @@ export class TeachersController {
   @Patch(':id')
   @UseInterceptors(
     FileInterceptor('photo', {
-      storage: diskStorage({
-        destination:
-          './uploads/teachers',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const uniqueName =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          callback(
-            null,
-            uniqueName +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  update(
-    @Param('id', ParseIntPipe)
-    id: number,
-
-    @Body()
-    body: UpdateTeacherDto,
-
-    @UploadedFile()
-    file?: Express.Multer.File,
-  ) {
-    if (file) {
-      body.photo =
-        `/uploads/teachers/${file.filename}`;
-    }
-
-    return this.teachersService.update(
-      id,
-      body,
-    );
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTeacherDto, @UploadedFile() file?) {
+    return this.teachersService.update(id, body, file); 
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
 import { api } from '../../services/api';
+import { toast } from 'sonner';
 
 interface EditMaterialModalProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ const EditMaterialModal = ({ isOpen, onClose, material, onSuccess }: EditMateria
     e.preventDefault();
 
     if (!formData.title || !formData.description || !formData.categoryId) {
-        alert('Заповніть обов’язкові поля!');
+        toast.error('Заповніть обов’язкові поля!');
         return;
     }
 
@@ -81,13 +82,13 @@ const EditMaterialModal = ({ isOpen, onClose, material, onSuccess }: EditMateria
         headers: { 'Content-Type': 'multipart/form-data' },
         });
 
-        alert('Матеріал успішно оновлено!');
+        toast.success('Матеріал успішно оновлено!');
         onSuccess();
         onClose();
         setFile(null);
     } catch (err: any) {
         console.error(err);
-        alert(err.response?.data?.message || 'Помилка при оновленні матеріалу');
+        toast.error(err.response?.data?.message || 'Помилка при оновленні матеріалу');
     } finally {
         setLoading(false);
     }

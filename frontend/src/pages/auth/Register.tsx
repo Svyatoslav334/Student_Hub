@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService, type RegisterDto } from '../../services/authService';
+import { toast } from 'sonner';
 
 const Register = () => {
   const [formData, setFormData] = useState<RegisterDto>({
@@ -24,7 +25,7 @@ const Register = () => {
 
     try {
       await authService.register(formData);
-      alert('Реєстрація успішна! Тепер увійдіть.');
+      toast.success('Реєстрація успішна! Тепер увійдіть.');
       navigate('/login');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Помилка реєстрації');

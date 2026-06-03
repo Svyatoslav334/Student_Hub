@@ -60,9 +60,6 @@ export class FaqController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateFaqDto: UpdateFaqDto,
   ) {
-    console.log('🔍 PATCH DTO:', updateFaqDto);
-    console.log('🔍 DTO Keys:', Object.keys(updateFaqDto));
-    
     return this.faqService.update(id, updateFaqDto);
   }
 

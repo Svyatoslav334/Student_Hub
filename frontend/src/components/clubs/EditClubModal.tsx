@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../../services/api';
+import { toast } from 'sonner';
 
 interface EditClubModalProps {
   isOpen: boolean;
@@ -45,12 +46,12 @@ const EditClubModal = ({ isOpen, onClose, club, onSuccess }: EditClubModalProps)
       await api.patch(`/clubs/${club.id}`, data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert('Гурток успішно оновлено!');
+      toast.success('Гурток успішно оновлено!');
       onSuccess();
       onClose();
       setImage(null);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Помилка при редагуванні');
+      toast.error(err.response?.data?.message || 'Помилка при редагуванні');
     } finally {
       setLoading(false);
     }

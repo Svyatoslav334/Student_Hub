@@ -19,7 +19,7 @@ const TeacherDashboard = () => {
     try {
       setLoading(true);
       
-      // Можна зробити паралельні запити
+      
       const [materialsRes, clubsRes] = await Promise.all([
         api.get('/materials?my=true'),
         api.get('/clubs/my'),
@@ -28,7 +28,7 @@ const TeacherDashboard = () => {
       setStats({
         materials: materialsRes.data.items?.length || materialsRes.data.length || 0,
         clubs: clubsRes.data.length || 0,
-        students: 89, // поки статично
+        students: 89, 
       });
     } catch (err) {
       console.error('Помилка завантаження статистики', err);

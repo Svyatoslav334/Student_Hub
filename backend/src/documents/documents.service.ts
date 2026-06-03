@@ -9,6 +9,7 @@ import { QueryDocumentDto } from './dto/query-document.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Role } from '../users/users.entity';
 import { CreateDocumentCategoryDto } from './dto/create-document-category.dto';
+import { SupabaseStorageService } from '../common/supabase-storage.service';
 
 @Injectable()
 export class DocumentsService {
@@ -17,15 +18,17 @@ export class DocumentsService {
     private documentRepo: Repository<Document>,
     @InjectRepository(DocumentCategory)
     private categoryRepo: Repository<DocumentCategory>,
+
+    private storage: SupabaseStorageService,
   ) {}
 
   async create(data: CreateDocumentDto, userId: number, file?: Express.Multer.File) {
-    const category = await this.categoryRepo.findOne({
-      where: { id: data.categoryId }
-    });
+    const category = await this.categoryRepo.findOne({ where: { id: data.categoryId } });
+    if (!category) throw new NotFoundException('Category not found');
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    let fileUrl: string | null = null;
+    if (file) {
+      fileUrl = await this.storage.upload(file, 'documents');
     }
 
     const document = this.documentRepo.create({
@@ -33,15 +36,12 @@ export class DocumentsService {
       description: data.description,
       type: data.type,
       isPublished: data.isPublished ?? true,
-      
       category,
-
       author: { id: userId } as any,
-
-      file: file ? `/uploads/documents/${file.filename}` : null,
-      originalFileName: file?.originalname,
-      mimeType: file?.mimetype,
-      size: file?.size,
+      file: fileUrl,
+      originalFileName: file?.originalname ?? null,
+      mimeType: file?.mimetype ?? null,
+      size: file?.size ?? null,
     });
 
     return this.documentRepo.save(document);
@@ -116,6 +116,8 @@ export class DocumentsService {
     if (user.role === Role.TEACHER && doc.author?.id !== user.sub) {
       throw new ForbiddenException('You can only delete your own documents');
     }
+
+    if (doc.file) await this.storage.delete(doc.file);
 
     await this.documentRepo.remove(doc);
     return { message: 'Document deleted' };

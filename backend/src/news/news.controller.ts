@@ -36,6 +36,8 @@ import { Role } from '../users/users.entity';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { plainToInstance } from 'class-transformer';
 
+import { memoryStorage } from 'multer'; 
+
 @Controller('news')
 export class NewsController {
   constructor(
@@ -62,69 +64,38 @@ export class NewsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/news',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const uniqueName =
-            Date.now() +
-            '-' +
-            Math.round(Math.random() * 1e9);
-
-          callback(
-            null,
-            uniqueName +
-              extname(file.originalname),
-          );
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
   create(
     @Body() body: CreateNewsDto,
-
     @CurrentUser() user: JwtPayload,
-
-    @UploadedFile()
-    file?: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (file) {
-      body.image =
-        `/uploads/news/${file.filename}`;
-    }
-
-    return this.newsService.create(
-    body,
-    user.sub,
-    );
+    return this.newsService.create(body, user.sub, file);
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image', { /* ... */ }))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: any,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-
     const processedBody = {
       ...body,
       pinned: body.pinned === 'true' || body.pinned === true,
     };
-
     const updateData = plainToInstance(UpdateNewsDto, processedBody, {
       enableImplicitConversion: true,
     });
-
-    if (file) {
-      updateData.image = `/uploads/news/${file.filename}`;
-    }
-
-    return this.newsService.update(id, updateData);
+    return this.newsService.update(id, updateData, file);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

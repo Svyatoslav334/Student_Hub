@@ -17,7 +17,7 @@ interface Material {
   category: { name: string };
   createdAt: string;
   author?: {
-    profile?: { firstName?: string; lastName?: string };
+    firstName?: string; lastName?: string
   };
 }
 
@@ -27,7 +27,7 @@ const MaterialsList = () => {
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
 
-  // Для перегляду документа
+  
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState('');
 
@@ -52,7 +52,7 @@ const MaterialsList = () => {
       setSelectedFile(fileUrl);
       setSelectedTitle(title);
     } else {
-      // Для інших файлів — просто завантажуємо
+      
       window.open(fileUrl, '_blank');
     }
   };
@@ -133,8 +133,8 @@ const MaterialsList = () => {
 
                   <div className="mt-auto pt-4 flex items-center justify-between text-xs text-slate-500">
                     <div>{new Date(material.createdAt).toLocaleDateString('uk-UA')}</div>
-                    {material.author?.profile && (
-                      <div>{material.author.profile.firstName} {material.author.profile.lastName}</div>
+                    {material.author && (
+                      <div>{material.author.firstName} {material.author.lastName}</div>
                     )}
                   </div>
 

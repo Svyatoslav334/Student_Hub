@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
 import { api } from '../../services/api';
+import { toast } from 'sonner';
 
 interface AddMaterialModalProps {
   isOpen: boolean;
@@ -57,7 +58,7 @@ const AddMaterialModal = ({ isOpen, onClose, onSuccess }: AddMaterialModalProps)
     e.preventDefault();
 
     if (!formData.title || !formData.description || !formData.categoryId || !file) {
-      alert('Заповніть усі обов’язкові поля та оберіть файл!');
+      toast.error('Заповніть усі обов’язкові поля та оберіть файл!');
       return;
     }
 
@@ -74,7 +75,7 @@ const AddMaterialModal = ({ isOpen, onClose, onSuccess }: AddMaterialModalProps)
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      alert('Матеріал успішно додано!');
+      toast.success('Матеріал успішно додано!');
       onSuccess();
       onClose();
 
@@ -86,7 +87,7 @@ const AddMaterialModal = ({ isOpen, onClose, onSuccess }: AddMaterialModalProps)
       });
       setFile(null);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Помилка при додаванні матеріалу');
+      toast.error(err.response?.data?.message || 'Помилка при додаванні матеріалу');
     } finally {
       setLoading(false);
     }

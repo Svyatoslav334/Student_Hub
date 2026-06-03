@@ -4,6 +4,7 @@ import { Plus, Users, Edit2, Trash2, MessageCircle } from 'lucide-react';
 import CreateClubModal from '../../components/clubs/CreateClubModal';
 import EditClubModal from '../../components/clubs/EditClubModal';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const TeacherMyClubs = () => {
   const [clubs, setClubs] = useState<any[]>([]);
@@ -12,12 +13,12 @@ const TeacherMyClubs = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const navigate = useNavigate();
-  // Завантажуємо створені викладачем гуртки
+  
   const fetchMyCreatedClubs = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/clubs/my-created');   // Важливо: my-created
-      console.log('Отримані гуртки:', res.data);        // ← Для дебагу
+      const res = await api.get('/clubs/my-created');   
+      console.log('Отримані гуртки:', res.data);        
       setClubs(Array.isArray(res.data) ? res.data : res.data.items || []);
     } catch (err) {
       console.error('Помилка завантаження моїх гуртків:', err);
@@ -31,7 +32,7 @@ const TeacherMyClubs = () => {
   }, []);
 
   const handleCreateSuccess = () => {
-    fetchMyCreatedClubs();   // Примусово оновлюємо список
+    fetchMyCreatedClubs();   
   };
 
   const handleEdit = (club: any) => {
@@ -45,7 +46,7 @@ const TeacherMyClubs = () => {
       await api.delete(`/clubs/${id}`);
       fetchMyCreatedClubs();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Помилка видалення');
+      toast.error(err.response?.data?.message || 'Помилка видалення');
     }
   };
 

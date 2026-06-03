@@ -20,43 +20,22 @@ export class Teacher {
   user!: User;
 
   @Column()
-  firstName!: string;
-
-  @Column()
-  lastName!: string;
-
-  @Column()
   department!: string;
 
   @Column()
   subject!: string;
 
-  @Column({ nullable: true, type: 'varchar' })
-  cabinet: string | null = null;
+  @Column({ nullable: true })
+  cabinet?: string | null;
 
-  @Column({ nullable: true, type: 'varchar' })
-  consultationHours: string | null = null;
+  @Column({ nullable: true })
+  consultationHours?: string | null;
 
   @Column({ nullable: true, type: 'text' })
-  bio: string | null = null;
+  bio?: string | null;
 
-  @Column({
-    nullable: true,
-    type: 'varchar',
-  })
-  phone: string | null = null;
-
-  @Column({
-    nullable: true,
-    type: 'varchar',
-  })
-  email: string | null = null;
-
-  @Column({
-    nullable: true,
-    type: 'varchar',
-  })
-  photo: string | null = null;
+  @Column({ nullable: true })
+  photo?: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

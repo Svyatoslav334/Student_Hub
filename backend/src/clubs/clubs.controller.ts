@@ -15,7 +15,7 @@ import {
 
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 
 import { extname } from 'path';
 
@@ -87,52 +87,12 @@ export class ClubsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination:
-          './uploads/clubs',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const uniqueName =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          callback(
-            null,
-            uniqueName +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  create(
-    @Body()
-    body: CreateClubDto,
-
-    @CurrentUser()
-    user: JwtPayload,
-
-    @UploadedFile()
-    file?: Express.Multer.File,
-  ) {
-    if (file) {
-      body.image =
-        `/uploads/clubs/${file.filename}`;
-    }
-
-    return this.clubsService.create(
-      body,
-      user.sub,
-    );
+  create(@Body() body: CreateClubDto, @CurrentUser() user: JwtPayload, @UploadedFile() file?) {
+    return this.clubsService.create(body, user.sub, file);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -140,52 +100,12 @@ export class ClubsController {
   @Patch(':id')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination:
-          './uploads/clubs',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const uniqueName =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          callback(
-            null,
-            uniqueName +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  update(
-    @Param('id', ParseIntPipe)
-    id: number,
-
-    @Body()
-    body: UpdateClubDto,
-
-    @UploadedFile()
-    file?: Express.Multer.File,
-  ) {
-    if (file) {
-      body.image =
-        `/uploads/clubs/${file.filename}`;
-    }
-
-    return this.clubsService.update(
-      id,
-      body,
-    );
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateClubDto, @UploadedFile() file?) {
+    return this.clubsService.update(id, body, file);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

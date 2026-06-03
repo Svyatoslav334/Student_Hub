@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 
 import type { ChatMessage } from '../../types/chat';
 
@@ -11,14 +10,6 @@ const ChatMessages = ({
   messages,
   currentUserId,
 }: Props) => {
-  const bottomRef =
-    useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: 'smooth',
-    });
-  }, [messages]);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -28,16 +19,7 @@ const ChatMessages = ({
             msg.author.id ===
             currentUserId;
 
-          const name = `
-            ${
-              msg.author.profile
-                ?.firstName || ''
-            }
-            ${
-              msg.author.profile
-                ?.lastName || ''
-            }
-          `.trim();
+            const name = `${msg.author.firstName || ''} ${msg.author.lastName || ''}`.trim();
 
           return (
             <div
@@ -90,8 +72,6 @@ const ChatMessages = ({
             </div>
           );
         })}
-
-        <div ref={bottomRef} />
       </div>
     </div>
   );

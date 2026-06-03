@@ -83,7 +83,7 @@ const Home = () => {
         
         setFaqs(faqRes.data.items || []);
         
-        setTotalTeachers(teachersRes.data.total || 42); // fallback якщо total не приходить
+        setTotalTeachers(teachersRes.data.total || 42);
       } catch (err) {
         console.error('Failed to load home data', err);
       } finally {

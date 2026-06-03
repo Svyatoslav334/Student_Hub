@@ -10,6 +10,7 @@ import {
   Send, 
   Trash2 
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface News {
   id: number;
@@ -21,10 +22,8 @@ interface News {
   createdAt: string;
   author?: {
     email: string;
-    profile?: {
-      firstName?: string;
-      lastName?: string;
-    };
+    firstName?: string;
+    lastName?: string;
   };
 }
 
@@ -35,10 +34,8 @@ interface Comment {
   author: {
     id: number;
     email: string;
-    profile?: {
-      firstName?: string;
-      lastName?: string;
-    };
+    firstName?: string;
+    lastName?: string;
   };
 }
 
@@ -83,9 +80,9 @@ const NewsDetail = () => {
     try {
       await api.post(`/news/${id}/comments`, { content: newComment.trim() });
       setNewComment('');
-      fetchNewsAndComments(); // оновлюємо список коментарів
+      fetchNewsAndComments(); 
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Не вдалося додати коментар');
+      toast.error(err.response?.data?.message || 'Не вдалося додати коментар');
     } finally {
       setCommentLoading(false);
     }
@@ -98,7 +95,7 @@ const NewsDetail = () => {
       await api.delete(`/news/${id}/comments/${commentId}`);
       setComments(prev => prev.filter(c => c.id !== commentId));
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Не вдалося видалити коментар');
+      toast.error(err.response?.data?.message || 'Не вдалося видалити коментар');
     }
   };
 
@@ -164,10 +161,10 @@ const NewsDetail = () => {
                 })}
               </div>
               <div className="capitalize">• {news.category}</div>
-              {news.author?.profile && (
+              {news.author && (
                 <div className="flex items-center gap-2">
                   <User size={18} />
-                  {news.author.profile.firstName} {news.author.profile.lastName}
+                  {news.author.firstName} {news.author.lastName}
                 </div>
               )}
             </div>
@@ -231,7 +228,7 @@ const NewsDetail = () => {
                       </div>
                       <div>
                         <p className="font-medium">
-                          {comment.author.profile?.firstName} {comment.author.profile?.lastName}
+                          {comment.author.firstName} {comment.author.lastName}
                         </p>
                         <p className="text-xs text-slate-500">
                           {new Date(comment.createdAt).toLocaleDateString('uk-UA')}

@@ -15,7 +15,7 @@ import {
 
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 
 import { extname } from 'path';
 
@@ -70,48 +70,12 @@ export class MaterialsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination:
-          './uploads/materials',
-
-        filename: (
-          req,
-          file,
-          callback,
-        ) => {
-          const uniqueName =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          callback(
-            null,
-            uniqueName +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
-  create(
-    @Body()
-    body: CreateMaterialDto,
-
-    @CurrentUser()
-    user: JwtPayload,
-
-    @UploadedFile()
-    file?: Express.Multer.File,
-  ) {
-    return this.materialsService.create(
-      body,
-      user.sub,
-      file,
-    );
+  create(@Body() body: CreateMaterialDto, @CurrentUser() user: JwtPayload, @UploadedFile() file?) {
+    return this.materialsService.create(body, user.sub, file);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -119,21 +83,11 @@ export class MaterialsController {
   @Patch(':id')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/materials',
-        filename: (req, file, callback) => {
-          const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          callback(null, uniqueName + extname(file.originalname));
-        },
-      }),
-    })
+      storage: memoryStorage(),
+      limits: { fileSize: 50 * 1024 * 1024 },
+    }),
   )
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateMaterialDto,
-    @CurrentUser() user: JwtPayload,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateMaterialDto, @CurrentUser() user: JwtPayload, @UploadedFile() file?) {
     return this.materialsService.update(id, body, user, file);
   }
 

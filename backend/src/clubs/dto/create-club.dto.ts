@@ -3,6 +3,7 @@ import {
   MinLength,
   IsOptional,
   IsInt,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateClubDto {
@@ -23,8 +24,8 @@ export class CreateClubDto {
   image?: string;
 
   @IsOptional()
-  @IsString()
-  leader?: string;
+  @IsNumber()
+  leaderId?: number;
 
   @IsOptional()
   @IsString()

@@ -20,7 +20,12 @@ interface Teacher {
   cabinet?: string;
   phone?: string;
   email?: string;
-  photo?: string;
+  photo?: string;        
+  avatar?: string;       
+  
+  user?: {
+    avatar?: string;
+  };
   createdAt: string;
 }
 
@@ -54,6 +59,30 @@ const TeachersList = () => {
     teacher.department.toLowerCase().includes(search.toLowerCase()) ||
     teacher.subject.toLowerCase().includes(search.toLowerCase())
   );
+
+  const getAvatarUrl = (teacher: Teacher): string | null => {
+    
+    if (teacher.avatar) return teacher.avatar;
+    
+    
+    if (teacher.photo) return teacher.photo;
+    
+    
+    if (teacher.user?.avatar) return teacher.user.avatar;
+
+    return null;
+  };
+
+  const getAvatarColor = (str: string): string => {
+    if (!str) return '#64748b';
+
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 85%, 58%)`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -100,22 +129,33 @@ const TeachersList = () => {
                 className="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:border-cyan-500/50 transition-all hover:-translate-y-1 flex flex-col"
               >
                 
-                <div className="h-64 bg-slate-800 flex items-center justify-center overflow-hidden relative">
-                  {teacher.photo ? (
+              <div className="h-64 bg-slate-800 flex items-center justify-center overflow-hidden relative">
+                {(() => {
+                  const avatarUrl = getAvatarUrl(teacher);
+                  return avatarUrl ? (
                     <img
-                      src={teacher.photo}
-                      alt={`${teacher.firstName} ${teacher.lastName}`}
+                      src={avatarUrl}                    
+                      alt={`${teacher.firstName || ''} ${teacher.lastName || ''}`}
                       className="w-full h-full object-cover transition group-hover:scale-105"
                     />
                   ) : (
-                    <div className="text-7xl text-slate-700">
-                      👨‍🏫
+                    <div 
+                      className="w-32 h-32 rounded-full flex items-center justify-center text-6xl text-white shadow-inner font-medium"
+                      style={{ 
+                        backgroundColor: getAvatarColor(
+                          `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()
+                        ) 
+                      }}
+                    >
+                      {(teacher.firstName?.[0] || '') + (teacher.lastName?.[0] || '') || '👨‍🏫'}
                     </div>
-                  )}
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
-                    {teacher.department}
-                  </div>
+                  );
+                })()}
+
+                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
+                  {teacher.department}
                 </div>
+              </div>
 
                 
                 <div className="p-6 flex-1 flex flex-col">

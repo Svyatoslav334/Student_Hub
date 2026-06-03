@@ -12,7 +12,7 @@ const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Якщо вказані дозволені ролі — перевіряємо
+  
   if (allowedRoles && user?.role) {
     if (!allowedRoles.includes(user.role)) {
       return <Navigate to="/" replace />;

@@ -6,7 +6,7 @@ import AdminLayout from '../components/layout/AdminLayout';
 
 import PrivateRoute from './PrivateRoute';
 
-/* Pages */
+
 import Home from '../pages/Home';
 
 import Login from '../pages/auth/Login';
@@ -14,40 +14,46 @@ import Register from '../pages/auth/Register';
 
 import ProfilePage from '../pages/profile/ProfilePage';
 
-/* News */
+
 import NewsList from '../pages/news/NewsList';
 import NewsDetail from '../pages/news/NewsDetail';
 
-/* Clubs */
+
 import ClubsList from '../pages/clubs/ClubsList';
 import ClubDetail from '../pages/clubs/ClubDetail';
 import MyClubsPage from '../pages/clubs/MyClubsPage';
 import ClubChatPage from '../pages/clubs/ClubChatPage';
 
-/* Teachers */
+
 import TeachersList from '../pages/teachers/TeachersList';
 import TeacherDetail from '../pages/teachers/TeacherDetail';
 import TeacherMaterials from '../pages/teachers/TeacherMaterials';
 import TeacherDashboard from '../pages/teachers/TeacherDashboard';
 import TeacherMyClubs from '../pages/teachers/TeacherMyClubs';
 
-/* Admin */
 
-/* Materials */
+
+
 import MaterialsList from '../pages/materials/MaterialsList';
 
-/* FAQ */
+
 import FaqPage from '../pages/faq/FaqPage';
 
-/* Documents */
+
 import DocumentsList from '../pages/documents/DocumentsList';
 
-/* Admin pages */
+
 import AdminUsers from '../pages/admin/AdminUsers';
 import AdminNews from '../pages/admin/AdminNews';
 import AdminFaq from '../pages/admin/AdminFaq';
 import AdminDocuments from '../pages/admin/AdminDocuments';
 import AdminDashboard from '../pages/admin/AdminDashboard';
+import MyGroup from '../pages/student-groups/MyGroup';
+import AdminStudentGroups from '../pages/admin/AdminStudentGroups';
+import StudentGroupsList from '../pages/student-groups/StudentGroupsList';
+import StudentGroupDetail from '../pages/student-groups/StudentGroupDetail';
+import MapPage from '../pages/map/MapPage';
+import MapEditor from '../pages/admin/MapEditor';
 
 export const router = createBrowserRouter([
   {
@@ -61,7 +67,7 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
 
-      /* NEWS */
+      
       {
         path: 'news',
         element: <NewsList />,
@@ -72,7 +78,6 @@ export const router = createBrowserRouter([
         element: <NewsDetail />,
       },
 
-      /* TEACHERS */
       {
         path: 'teachers',
         element: <TeachersList />,
@@ -83,10 +88,14 @@ export const router = createBrowserRouter([
         element: <TeacherDetail />,
       },
 
-      /* CLUBS */
       {
         path: 'clubs',
         element: <ClubsList />,
+      },
+
+      {
+        path: 'map',
+        element: <MapPage />,
       },
 
       {
@@ -120,25 +129,37 @@ export const router = createBrowserRouter([
         ],
       },
 
-      /* FAQ */
+      {
+        path: 'my-group',
+        element: <PrivateRoute />,
+        children: [
+          { index: true, element: <MyGroup /> }
+        ]
+      },
+
       {
         path: 'faq',
         element: <FaqPage />,
       },
 
-      /* MATERIALS */
+      
       {
         path: 'materials',
         element: <MaterialsList />,
       },
 
-      /* DOCUMENTS */
+      {
+        path: 'student-groups',
+        element: <StudentGroupsList />,
+      },
+
+      
       {
         path: 'documents',
         element: <DocumentsList />,
       },
 
-      /* PROFILE */
+      
       {
         path: 'profile',
 
@@ -221,10 +242,21 @@ export const router = createBrowserRouter([
             index: true,
             element: <AdminDashboard />,
           },
+          
 
           {
             path: 'users',
             element: <AdminUsers />,
+          },
+
+          {
+            path: 'map-editor',
+            element: <MapEditor />,
+          },
+
+          {
+            path: 'groups',
+            element: <AdminStudentGroups />,
           },
           
           {
@@ -251,7 +283,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  /* AUTH */
+  
 
   {
     path: '/login',
@@ -263,7 +295,7 @@ export const router = createBrowserRouter([
     element: <Register />,
   },
 
-  /* 404 */
+  
 
   {
     path: '*',
@@ -273,6 +305,14 @@ export const router = createBrowserRouter([
         404 — Сторінку не знайдено
       </div>
     ),
+  },
+
+  {
+    path: 'student-groups/:id',
+    element: <PrivateRoute />,
+    children: [
+      { index: true, element: <StudentGroupDetail /> }
+    ]
   },
 ]);
 

@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Teacher } from './teachers.entity';
 
 import { TeachersController } from './teachers.controller';
+import { User } from '../users/users.entity';
 
 import { TeachersService } from './teachers.service';
 
@@ -12,6 +13,7 @@ import { TeachersService } from './teachers.service';
   imports: [
     TypeOrmModule.forFeature([
       Teacher,
+      User,
     ]),
   ],
 

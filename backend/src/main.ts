@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'node:path';
 
 async function bootstrap() {
   const app =
@@ -11,9 +10,6 @@ async function bootstrap() {
       AppModule,
     );
 
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads/',
-  });
 
   const configService = app.get(ConfigService);
 

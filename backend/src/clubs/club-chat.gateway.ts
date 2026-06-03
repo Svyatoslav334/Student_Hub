@@ -42,22 +42,15 @@ async handleConnection(client: Socket) {
   try {
     const token = client.handshake.auth.token;
 
-    console.log('HANDSHAKE AUTH:', client.handshake.auth);
-    console.log('TOKEN:', token);
-
     if (!token) {
-      console.log('NO TOKEN');
       client.disconnect();
       return;
     }
 
     const payload = this.jwtService.verify(token);
 
-    console.log('JWT OK:', payload);
-
     client.data.userId = payload.sub;
   } catch (e: any) {
-    console.log('JWT FAILED:', e.message);
 
     client.disconnect();
   }

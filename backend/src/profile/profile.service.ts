@@ -1,56 +1,47 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
 import { Repository } from 'typeorm';
-
 import { Profile } from './profile.entity';
+import { User } from '../users/users.entity';
+import { SupabaseStorageService } from '../common/supabase-storage.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
     @InjectRepository(Profile)
     private profileRepo: Repository<Profile>,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
+    private storage: SupabaseStorageService,
   ) {}
 
-  async updateProfile(
-    userId: number,
-    data: any,
-  ) {
-    const profile =
-      await this.profileRepo.findOne({
-        where: {
-          user: {
-            id: userId,
-          },
-        },
-      });
+  async updateProfile(userId: number, data: any, file?: Express.Multer.File) {
+    const updateData: any = { ...data };
 
-    if (!profile) {
-      throw new NotFoundException(
-        'Profile not found',
-      );
+    if (file) {
+      const user = await this.userRepo.findOne({ where: { id: userId } });
+      if (user?.avatar) await this.storage.delete(user.avatar);
+      updateData.avatar = await this.storage.upload(file, 'avatars');
     }
 
-    profile.firstName =
-      data.firstName ??
-      profile.firstName;
+    await this.userRepo.update(userId, {
+      ...(updateData.firstName !== undefined && { firstName: updateData.firstName }),
+      ...(updateData.lastName !== undefined && { lastName: updateData.lastName }),
+      ...(updateData.phone !== undefined && { phone: updateData.phone }),
+      ...(updateData.avatar !== undefined && { avatar: updateData.avatar }),
+    });
 
-    profile.lastName =
-      data.lastName ??
-      profile.lastName;
+    let profile = await this.profileRepo.findOne({ where: { user: { id: userId } } });
+    if (!profile) {
+      profile = this.profileRepo.create({ user: { id: userId } as any });
+    }
 
-    profile.phone =
-      data.phone ??
-      profile.phone;
+    if (updateData.bio !== undefined) profile.bio = updateData.bio;
+    if (updateData.socialLinks !== undefined) profile.socialLinks = updateData.socialLinks;
 
-    profile.avatar =
-      data.avatar ??
-      profile.avatar;
+    await this.profileRepo.save(profile);
 
-    return this.profileRepo.save(profile);
+    return this.userRepo.findOne({ where: { id: userId }, relations: ['profile'] });
   }
 }

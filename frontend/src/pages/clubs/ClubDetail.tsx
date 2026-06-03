@@ -10,6 +10,7 @@ import {
   Clock, 
   Calendar 
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ClubDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,7 +32,7 @@ const ClubDetail = () => {
       const res = await api.get(`/clubs/${id}`);
       const clubData = res.data;
       
-      // Фікс кількості учасників
+      
       const memberCount = clubData.members?.length ?? clubData.currentMembers ?? 0;
       
       setClub({
@@ -49,16 +50,16 @@ const ClubDetail = () => {
 
   const handleJoin = async () => {
     if (!isAuthenticated) {
-      alert("Увійдіть, щоб приєднатися до гуртка");
+      toast.warning("Увійдіть, щоб приєднатися до гуртка");
       return;
     }
     setJoining(true);
     try {
       await api.post(`/clubs/${id}/join`);
-      alert("Ви приєдналися до гуртка!");
-      fetchClub(); // оновлюємо дані
+      toast.success("Ви приєдналися до гуртка!");
+      fetchClub(); 
     } catch (err: any) {
-      alert(err.response?.data?.message || "Не вдалося приєднатися");
+      toast.error(err.response?.data?.message || "Не вдалося приєднатися");
     } finally {
       setJoining(false);
     }
@@ -68,10 +69,10 @@ const ClubDetail = () => {
     setJoining(true);
     try {
       await api.delete(`/clubs/${id}/leave`);
-      alert("Ви вийшли з гуртка");
+      toast.success("Ви вийшли з гуртка!");
       fetchClub();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Помилка");
+      toast.error(err.response?.data?.message || "Помилка");
     } finally {
       setJoining(false);
     }

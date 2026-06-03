@@ -4,6 +4,8 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/users.entity';
 
@@ -12,19 +14,26 @@ export class Profile {
   @PrimaryGeneratedColumn()
   id!: number;
 
-@Column({ nullable: true, type: 'varchar' })
-  firstName?: string | null;
+  @Column({ nullable: true, type: 'text' })
+  bio?: string | null;
 
-  @Column({ nullable: true, type: 'varchar' })
-  lastName?: string | null;
-
-  @Column({ nullable: true, type: 'varchar' })
-  phone?: string | null;
-
-  @Column({ nullable: true, type: 'varchar' })
-  avatar?: string | null;
+  @Column('jsonb', { default: {} })
+  socialLinks!: {
+    telegram?: string;
+    instagram?: string;
+    linkedin?: string;
+    facebook?: string;
+    twitter?: string;
+    [key: string]: string | undefined;
+  };
 
   @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
   @JoinColumn()
   user!: User;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

@@ -34,7 +34,7 @@ const ClubsList = () => {
       const res = await api.get('/clubs');
       const items = res.data.items || res.data;
 
-      // Фіксимо currentMembers
+      
       const fixedItems = items.map((club: any) => ({
         ...club,
         currentMembers: club.members?.length ?? club.currentMembers ?? 0

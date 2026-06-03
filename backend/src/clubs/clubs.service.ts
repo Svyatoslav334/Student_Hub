@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 
 import { Club } from './clubs.entity';
-import { User } from '../users/users.entity';
+import { Role, User } from '../users/users.entity';
 
 import { CreateClubDto } from './dto/create-club.dto';
 
@@ -22,6 +22,7 @@ import { UpdateClubDto } from './dto/update-club.dto';
 
 import { QueryClubDto } from './dto/query-club.dto';
 import { ClubMessage } from './club-message.entity';
+import { SupabaseStorageService } from '../common/supabase-storage.service';
 
 
 @Injectable()
@@ -35,18 +36,41 @@ export class ClubsService {
 
     @InjectRepository(ClubMessage)
     private messageRepo: Repository<ClubMessage>,
+
+    private storage: SupabaseStorageService,
   ) {}
 
-  async create(
-    data: CreateClubDto,
-    userId: number,
-  ) {
-    const club = this.clubRepo.create({
-      ...data,
+  async create(data: CreateClubDto, userId: number, file?: Express.Multer.File) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: ['id', 'role', 'firstName', 'lastName']
+    });
 
-      creator: {
-        id: userId,
-      } as any,
+    if (!user) throw new NotFoundException('Користувача не знайдено');
+
+    let leaderId: number | null = null;
+    
+    if (user.role === Role.TEACHER) {
+      leaderId = userId;
+    } else if (data.leaderId) {
+      leaderId = data.leaderId;
+    }
+
+    let imageUrl = data.image;
+    if (file) {
+      imageUrl = await this.storage.upload(file, 'clubs');
+    }
+
+    const club = this.clubRepo.create({
+      title: data.title,
+      description: data.description,
+      contact: data.contact,
+      schedule: data.schedule,
+      meetingTime: data.meetingTime,
+      maxMembers: data.maxMembers || 20,
+      image: imageUrl ?? null,
+      creator: { id: userId },
+      leader: leaderId ? { id: leaderId } : null,
     });
 
     return this.clubRepo.save(club);
@@ -87,9 +111,7 @@ export class ClubsService {
 
         relations: [
           'creator',
-          'creator.profile',
           'members',
-          'members.profile',
         ],
 
         order: {
@@ -119,9 +141,7 @@ export class ClubsService {
 
         relations: [
           'creator',
-          'creator.profile',
           'members',
-          'members.profile',
         ],
       });
 
@@ -134,14 +154,15 @@ export class ClubsService {
     return club;
   }
 
-  async update(
-    id: number,
-    data: UpdateClubDto,
-  ) {
+  async update(id: number, data: UpdateClubDto, file?: Express.Multer.File) {
     const club = await this.findOne(id);
 
-    Object.assign(club, data);
+    if (file) {
+      if (club.image) await this.storage.delete(club.image);
+      data.image = await this.storage.upload(file, 'clubs');
+    }
 
+    Object.assign(club, data);
     return this.clubRepo.save(club);
   }
 
@@ -246,7 +267,6 @@ export class ClubsService {
       relations: [
         'members',
         'creator',
-        'creator.profile',
       ],
     });
   }
@@ -256,7 +276,6 @@ export class ClubsService {
       where: { id },
       relations: [
         'members',
-        'members.profile',
       ],
     });
 
@@ -318,7 +337,7 @@ export class ClubsService {
 
     return this.messageRepo.find({
       where: { club: { id: clubId } },
-      relations: ['author', 'author.profile'],
+      relations: ['author'],
       order: { createdAt: 'DESC' },
       take: limit,
     });
@@ -335,9 +354,7 @@ export class ClubsService {
       },
       relations: [
         'creator',
-        'creator.profile',
         'members',
-        'members.profile',
       ],
       order: {
         createdAt: 'DESC',

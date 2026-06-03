@@ -65,19 +65,14 @@ export class UsersController {
   @Roles(Role.ADMIN)
   @Put(':id')
   update(
-    @Param('id', ParseIntPipe)
-    id: number,
-
-    @Body()
-    body: {
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: {
       firstName?: string;
       lastName?: string;
       email?: string;
+      groupId?: number | null;
     },
   ) {
-    return this.usersService.update(
-      id,
-      body,
-    );
+    return this.usersService.update(id, body);
   }
 }

@@ -59,10 +59,18 @@ const handleSubmit = async () => {
     data.append('image', image);
   }
 
-  await api.patch(`/news/${initialData.id}`, data);
+  try {
+    if (isEdit && initialData?.id) {
+      await api.patch(`/news/${initialData.id}`, data);
+    } else {
+      await api.post('/news', data);
+    }
 
-  onSuccess();
-  onClose();
+    onSuccess();
+    onClose();
+  } catch (error) {
+    console.error('Failed to save news:', error);
+  }
 };
 
   return (

@@ -14,3 +14,30 @@ body {
 
   font-family: Inter, sans-serif;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;     
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569; 
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b; 
+}
+
+html {
+  scrollbar-color: #475569 #0f172a;
+  scrollbar-width: thin;
+}
+body, html {
+  scrollbar-color: #475569 #0f172a;
+}

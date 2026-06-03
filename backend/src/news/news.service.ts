@@ -18,22 +18,30 @@ import { UpdateNewsDto } from './dto/update-news.dto';
 import { QueryNewsDto } from './dto/query-news.dto';
 
 import { User } from '../users/users.entity';
+import { SupabaseStorageService } from '../common/supabase-storage.service';
 
 @Injectable()
   export class NewsService {
     constructor(
       @InjectRepository(News)
       private newsRepo: Repository<News>,
+      private storage: SupabaseStorageService,
     ) {}
 
-  async create(data: CreateNewsDto, userId: number) {
+  async create(data: CreateNewsDto, userId: number, file?: Express.Multer.File) {
+    let imageUrl = data.image;
+    if (file) {
+      imageUrl = await this.storage.upload(file, 'news');
+    }
+
     const news = this.newsRepo.create({
       ...data,
+      image: imageUrl ?? null,
       author: { id: userId } as any,
     });
-
     return this.newsRepo.save(news);
   }
+
 
   async findAll(query: QueryNewsDto) {
     const page = Number(query.page ?? 1);
@@ -92,14 +100,15 @@ import { User } from '../users/users.entity';
     return news;
   }
 
-  async update(
-    id: number,
-    data: UpdateNewsDto,
-  ) {
+  async update(id: number, data: UpdateNewsDto, file?: Express.Multer.File) {
     const news = await this.findOne(id);
 
-    Object.assign(news, data);
+    if (file) {
+      if (news.image) await this.storage.delete(news.image);
+      data.image = await this.storage.upload(file, 'news');
+    }
 
+    Object.assign(news, data);
     return this.newsRepo.save(news);
   }
 

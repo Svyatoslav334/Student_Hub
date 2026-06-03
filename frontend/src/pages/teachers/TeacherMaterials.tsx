@@ -3,6 +3,7 @@ import { api } from '../../services/api';
 import { Plus, FileText, Edit2, Trash2 } from 'lucide-react';
 import AddMaterialModal from '../../components/materials/AddMaterialModal';
 import EditMaterialModal from '../../components/materials/EditMaterialModal';
+import { toast } from 'sonner';
 
 const TeacherMaterials = () => {
   const [materials, setMaterials] = useState<any[]>([]);
@@ -11,7 +12,7 @@ const TeacherMaterials = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
 
-  // Завантаження матеріалів викладача
+  
   useEffect(() => {
     fetchMyMaterials();
   }, []);
@@ -28,13 +29,13 @@ const TeacherMaterials = () => {
     }
   };
 
-  // Відкриття модалки редагування
+  
   const handleEdit = (material: any) => {
     setSelectedMaterial(material);
     setIsEditModalOpen(true);
   };
 
-  // Видалення матеріалу
+  
   const handleDelete = async (id: number) => {
     if (!window.confirm('Ви впевнені, що хочете видалити цей матеріал?')) {
       return;
@@ -42,10 +43,10 @@ const TeacherMaterials = () => {
 
     try {
       await api.delete(`/materials/${id}`);
-      alert('Матеріал успішно видалено');
-      fetchMyMaterials(); // оновлюємо список
+      toast.success('Матеріал успішно видалено');
+      fetchMyMaterials(); 
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Помилка при видаленні');
+      toast.error(err.response?.data?.message || 'Помилка при видаленні');
     }
   };
 
@@ -74,14 +75,14 @@ const TeacherMaterials = () => {
             <p className="text-slate-400">Завантаження матеріалів...</p>
           </div>
         ) : materials.length === 0 ? (
-          /* Empty State */
+          
           <div className="text-center py-20">
             <FileText size={60} className="mx-auto text-slate-600 mb-4" />
             <p className="text-xl text-slate-400">У вас ще немає матеріалів</p>
             <p className="text-slate-500 mt-2">Натисніть "Додати матеріал", щоб почати</p>
           </div>
         ) : (
-          /* Materials Grid */
+          
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {materials.map((mat) => (
               <div

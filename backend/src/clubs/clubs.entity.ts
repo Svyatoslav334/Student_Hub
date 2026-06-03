@@ -40,12 +40,8 @@ export class Club {
   })
   contact!: string;
 
-  @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
-  })
-  leader?: string;
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  leader?: User | null;
 
   @Column({
     type: 'varchar',

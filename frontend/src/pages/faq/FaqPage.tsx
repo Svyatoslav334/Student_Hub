@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Search, ChevronDown, HelpCircle, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FaqItem {
   id: number;
@@ -17,7 +18,6 @@ const FaqPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [openId, setOpenId] = useState<number | null>(null);
 
-  // Модальне вікно
   const [showModal, setShowModal] = useState(false);
   const [questionText, setQuestionText] = useState('');
   const [modalCategory, setModalCategory] = useState('OTHER');
@@ -51,7 +51,7 @@ const FaqPage = () => {
   };
 
   const filteredFaqs = faqs
-    .filter(faq => faq.isPublished) // 👈 ДОДАЙ ЦЕ
+    .filter(faq => faq.isPublished)
     .filter(faq => {
       const matchesSearch =
         faq.question.toLowerCase().includes(search.toLowerCase()) ||
@@ -74,11 +74,11 @@ const FaqPage = () => {
         question: questionText.trim(),
         category: modalCategory
       });
-      alert('Ваше питання надіслано! Дякуємо.');
+      toast.success('Ваше питання надіслано! Дякуємо.');
       setQuestionText('');
       setShowModal(false);
     } catch (err) {
-      alert('Помилка при відправці питання');
+      toast.error('Помилка при відправці питання');
     } finally {
       setSubmitting(false);
     }
