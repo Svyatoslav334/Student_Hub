@@ -8,6 +8,7 @@ import PrivateRoute from './PrivateRoute';
 
 
 import Home from '../pages/Home';
+import NotFoundPage from '../pages/NotFoundPage';
 
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
@@ -299,12 +300,7 @@ export const router = createBrowserRouter([
 
   {
     path: '*',
-
-    element: (
-      <div className="p-10 text-center text-2xl">
-        404 — Сторінку не знайдено
-      </div>
-    ),
+    element: <NotFoundPage />,
   },
 
   {
