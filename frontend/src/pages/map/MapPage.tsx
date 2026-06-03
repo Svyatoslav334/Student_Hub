@@ -331,7 +331,7 @@ interface SearchPanelProps {
 const SearchPanel = ({
   map, startQuery, endQuery, startRoom, endRoom,
   startSugs, endSugs, showStartSug, showEndSug,
-  pathError, path,
+  pathError,
   onStartChange, onEndChange,
   onStartFocus, onEndFocus,
   onStartBlur, onEndBlur,
