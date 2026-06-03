@@ -549,7 +549,7 @@ const MapPage = () => {
   );
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-slate-950 select-none"
+    <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden bg-slate-950 select-none"
       style={{ fontFamily: "'JetBrains Mono', monospace, sans-serif" }}>
 
       {/* ══════════════════════════════════════════════════════
