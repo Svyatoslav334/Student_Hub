@@ -32,8 +32,6 @@ interface MapData {
 const CANVAS_W = 1280;
 const CANVAS_H = 1280;
 const GRID = 5; 
-const GW = Math.ceil(CANVAS_W / GRID);
-const GH = Math.ceil(CANVAS_H / GRID);
 const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
 
 
