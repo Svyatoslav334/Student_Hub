@@ -15,6 +15,7 @@ StudentHub — університетський портал для студен
 - [Модулі бекенду](#модулі-бекенду)
 - [Реальний час (WebSocket)](#реальний-час-websocket)
 - [Карта корпусу](#карта-корпусу)
+- [Деплой на Render](#деплой-на-render)
 
 ## Можливості
 
@@ -188,3 +189,67 @@ VITE_API_URL=http://localhost:3000
 Карта складається з приміщень і коридорів, які адміністратор малює у вбудованому редакторі. На основі цих даних будується граф з'єднань між приміщеннями, а маршрут між двома аудиторіями прокладається алгоритмом A* з подальшим спрощенням ламаної лінії алгоритмом Рамера–Дугласа–Пекера.
 
 Кожен поверх зберігається як окремий запис із SVG-розміткою приміщень і списком кімнат із координатами та дверними проходами.
+
+## Деплой на Render
+
+Проєкт можна задеплоїти на [Render](https://render.com) як два окремих сервіси: backend (Web Service) та frontend (Static Site).
+
+### Backend (Web Service)
+
+1. У Render натиснути **New → Web Service**.
+2. Підключити репозиторій проєкту та обрати гілку (`main`).
+3. Вказати кореневу директорію (Root Directory): `backend`.
+4. Налаштування збірки:
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start:prod`
+   - **Environment**: `Node`
+5. Додати змінні середовища (Environment → Add Environment Variable):
+
+   ```env
+   DB_HOST=
+   DB_PORT=
+   DB_USER=
+   DB_PASSWORD=
+   DB_NAME=
+
+   JWT_SECRET=
+
+   SUPABASE_URL=
+   SUPABASE_SERVICE_KEY=
+
+   PORT=10000
+   FRONTEND_URL=https://<назва-фронтенду>.onrender.com
+   ```
+
+   > Render надає змінну `PORT` автоматично, але для NestJS її варто явно прописати (наприклад, `10000`) та переконатися, що застосунок слухає `process.env.PORT`.
+
+6. Якщо база даних — Supabase, дані для `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` беруться з налаштувань підключення Supabase (Connection Pooling / Direct connection).
+7. Після натискання **Create Web Service** Render автоматично виконує білд і деплой. URL бекенду матиме вигляд `https://<назва-бекенду>.onrender.com`.
+
+### Frontend (Static Site)
+
+1. Натиснути **New → Static Site**.
+2. Підключити той самий репозиторій.
+3. Вказати кореневу директорію: `frontend`.
+4. Налаштування збірки:
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+5. Додати змінну середовища:
+
+   ```env
+   VITE_API_URL=https://<назва-бекенду>.onrender.com
+   ```
+
+6. Для коректної роботи React Router потрібно додати правило перенаправлення (Rewrite Rule) у налаштуваннях Static Site:
+   - **Source**: `/*`
+   - **Destination**: `/index.html`
+   - **Action**: `Rewrite`
+
+7. Після натискання **Create Static Site** та завершення білду сайт стає доступним за адресою `https://<назва-фронтенду>.onrender.com`.
+
+### Після деплою
+
+- `FRONTEND_URL` у налаштуваннях бекенду оновлюється на реальний URL фронтенду (для коректної роботи CORS).
+- `VITE_API_URL` у налаштуваннях фронтенду оновлюється на реальний URL бекенду, після чого білд перезапускається.
+- WebSocket-з'єднання (Socket.IO) мають проходити через HTTPS/WSS — Render підтримує це з коробки для Web Service.
+- Безкоштовний план Render (Free) "засинає" після періоду неактивності — перший запит після сну може займати до 30-60 секунд.
