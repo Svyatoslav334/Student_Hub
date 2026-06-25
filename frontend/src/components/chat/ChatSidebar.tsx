@@ -34,9 +34,11 @@ const ChatSidebar = ({
           const active =
             club.id === currentClubId;
           const memberCount = 
-              club.membersCount ?? 
+              typeof club.members === 'number' ? club.members :
               club.memberCount ?? 
-              (Array.isArray(club.members) ? club.members.length : 0);
+              club.membersCount ?? 
+              (Array.isArray(club.members) ? club.members.length : 0) ?? 
+              0;
 
           return (
             <Link
