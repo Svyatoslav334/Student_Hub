@@ -35,10 +35,6 @@ const DocumentsList = () => {
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
-
   const fetchDocuments = async (pageNumber = 1) => {
     setLoading(true);
   
@@ -110,6 +106,7 @@ const DocumentsList = () => {
             ))}
           </div>
         ) : filteredDocuments.length > 0 ? (
+          <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredDocuments.map((doc) => (
               <div
@@ -169,6 +166,7 @@ const DocumentsList = () => {
               Вперед
             </button>
           </div>
+            </>
         ) : (
           <div className="text-center py-24">
             <FileText size={64} className="mx-auto text-slate-700 mb-6" />
