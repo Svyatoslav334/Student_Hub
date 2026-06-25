@@ -13,20 +13,19 @@ import {
 
 interface Teacher {
   id: number;
-  firstName: string;
-  lastName: string;
   department: string;
   subject: string;
   cabinet?: string;
-  phone?: string;
-  email?: string;
-  photo?: string;        
-  avatar?: string;       
-  
-  user?: {
-    avatar?: string;
-  };
+  photo?: string;
   createdAt: string;
+  user: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    avatar?: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 const TeachersList = () => {
@@ -61,18 +60,21 @@ const TeachersList = () => {
   );
 
   const getAvatarUrl = (teacher: Teacher): string | null => {
-    
-    if (teacher.avatar) return teacher.avatar;
-    
-    
-    if (teacher.photo) return teacher.photo;
-    
-    
-    if (teacher.user?.avatar) return teacher.user.avatar;
-
-    return null;
+    return teacher.user?.avatar || teacher.photo || null;
+  };
+  
+  const getFullName = (teacher: Teacher): string => {
+    const first = teacher.user?.firstName || '';
+    const last = teacher.user?.lastName || '';
+    return `${first} ${last}`.trim() || 'Без імені';
   };
 
+  const getInitials = (teacher: Teacher): string => {
+    const first = teacher.user?.firstName?.[0] || '';
+    const last = teacher.user?.lastName?.[0] || '';
+    return (first + last).toUpperCase() || '👨‍🏫';
+  };
+  
   const getAvatarColor = (str: string): string => {
     if (!str) return '#64748b';
 
@@ -139,15 +141,13 @@ const TeachersList = () => {
                       className="w-full h-full object-cover transition group-hover:scale-105"
                     />
                   ) : (
-                    <div 
+                    <div
                       className="w-32 h-32 rounded-full flex items-center justify-center text-6xl text-white shadow-inner font-medium"
-                      style={{ 
-                        backgroundColor: getAvatarColor(
-                          `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()
-                        ) 
+                      style={{
+                        backgroundColor: getAvatarColor(getFullName(teacher))
                       }}
                     >
-                      {(teacher.firstName?.[0] || '') + (teacher.lastName?.[0] || '') || '👨‍🏫'}
+                      {getInitials(teacher)}
                     </div>
                   );
                 })()}
@@ -160,7 +160,7 @@ const TeachersList = () => {
                 
                 <div className="p-6 flex-1 flex flex-col">
                   <h3 className="text-2xl font-semibold mb-1 group-hover:text-cyan-400 transition">
-                    {teacher.firstName} {teacher.lastName}
+                    {getFullName(teacher)}
                   </h3>
                   
                   <p className="text-cyan-400 font-medium mb-4">{teacher.subject}</p>
