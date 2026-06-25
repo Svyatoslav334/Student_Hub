@@ -114,7 +114,7 @@ const StudentGroupModal = ({ isOpen, onClose, onSuccess, editData }: StudentGrou
 
   return (
     <div className="fixed inset-0 bg-black/80 z-[10000] flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg max-h-[95vh] overflow-hidden">
+      <div className="bg-slate-900 border border-slate-700 rounded-3xl modal-enter w-full max-w-lg max-h-[95vh] overflow-hidden">
         <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
           <h2 className="text-2xl font-semibold">{editData ? 'Редагувати групу' : 'Створити нову групу'}</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl"><X size={24} /></button>
