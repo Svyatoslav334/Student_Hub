@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash, Pencil } from 'lucide-react';
 import { faqApi } from '../../services/faqApi.service';
+import Pagination from '../../components/Pagination';
 
 const emptyForm = {
   question: '',
   answer: '',
-  category: 'OTHER',
+  category: 'OTHER' as const,
   isPublished: true,
 };
 
@@ -23,23 +24,51 @@ const getItemStatus = (item: any) => {
 const AdminFaq = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  const [page, setPage] = useState(1);
+  
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'awaiting' | 'student'>('all');
+  
+  const [sortBy, setSortBy] = useState<'createdAt' | 'question'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'DESC' | 'ASC'>('DESC');
+
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => {
-    loadFaq();
-  }, []);
-
-  const loadFaq = async () => {
+  const loadFaq = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await faqApi.getAll({ showUnpublished: true, limit: 50 });
-      setItems(res.data.items);
+      const res = await faqApi.getAll({
+        page,
+        limit: 20,
+        search: search.trim() || undefined,
+        category: categoryFilter || undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        sortBy,
+        sortOrder,
+        showUnpublished: true,
+      });
+
+      setItems(res.data.items || []);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, categoryFilter, statusFilter, sortBy, sortOrder]);
+
+  useEffect(() => {
+    loadFaq();
+  }, [loadFaq]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryFilter, statusFilter, sortBy, sortOrder]);
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -64,7 +93,7 @@ const AdminFaq = () => {
   const handleEdit = (item: any) => {
     setForm({
       question: item.question,
-      answer: item.answer,
+      answer: item.answer || '',
       category: item.category,
       isPublished: item.isPublished,
     });
@@ -82,83 +111,103 @@ const AdminFaq = () => {
     try {
       const payload = {
         question: item.question,
-        answer: item.answer,
+        answer: item.answer || '',
         category: item.category ?? 'OTHER',
         isPublished: !item.isPublished,
       };
       await faqApi.update(item.id, payload);
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === item.id ? { ...i, isPublished: !i.isPublished } : i
-        )
-      );
-    } catch (err: any) {
-      console.log('ERROR MESSAGE:', err.message);
+      loadFaq();
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const newFromStudents = items.filter((i) => getItemStatus(i) === 'student');
-  const awaitingAnswer = items.filter((i) => getItemStatus(i) === 'awaiting');
-
   return (
     <div>
-      
-    <div className="flex justify-between items-center mb-6 gap-4">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">FAQ</h1>
-        <p className="text-slate-400 text-sm sm:text-base">Адміністрування питань</p>
-      </div>
-      <button
-        onClick={() => setShowForm(true)}
-        className="bg-cyan-500 px-4 py-2.5 rounded-xl flex items-center gap-2 shrink-0"
-      >
-        <Plus size={18} />
-        <span className="hidden sm:inline">Додати</span>
-      </button>
-    </div>
-
-      
-      {(newFromStudents.length > 0 || awaitingAnswer.length > 0) && (
-        <div className="flex gap-3 mb-6 flex-wrap">
-          {newFromStudents.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/40 bg-red-500/10">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-sm font-medium text-red-400">
-                {newFromStudents.length} нових питань
-              </span>
-              <span className="text-xs text-red-500/70">(від студентів, останні 24г)</span>
-            </div>
-          )}
-          {awaitingAnswer.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-yellow-500/40 bg-yellow-500/10">
-              <span className="w-2 h-2 rounded-full bg-yellow-400" />
-              <span className="text-sm font-medium text-yellow-400">
-                {awaitingAnswer.length} питань очікує відповідь
-              </span>
-            </div>
-          )}
+      <div className="flex justify-between items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">FAQ</h1>
+          <p className="text-slate-400 text-sm sm:text-base">Адміністрування питань</p>
         </div>
-      )}
+        <button
+          onClick={() => setShowForm(true)}
+          className="bg-cyan-500 px-4 py-2.5 rounded-xl flex items-center gap-2 shrink-0 hover:bg-cyan-400 transition"
+        >
+          <Plus size={18} />
+          <span className="hidden sm:inline">Додати питання</span>
+        </button>
+      </div>
 
-      
+      <div className="flex flex-wrap gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Пошук по питанню або відповіді..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 flex-1 min-w-[260px] focus:border-cyan-500 outline-none"
+        />
+
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3"
+        >
+          <option value="">Всі категорії</option>
+          <option value="ADMISSION">ADMISSION</option>
+          <option value="DOCUMENTS">DOCUMENTS</option>
+          <option value="STUDIES">STUDIES</option>
+          <option value="SCHEDULE">SCHEDULE</option>
+          <option value="CLUBS">CLUBS</option>
+          <option value="TEACHERS">TEACHERS</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as any)}
+          className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3"
+        >
+          <option value="all">Всі статуси</option>
+          <option value="published">Опубліковані</option>
+          <option value="draft">Чернетки</option>
+          <option value="awaiting">Очікують відповіді</option>
+          <option value="student">Нові від студентів (24г)</option>
+        </select>
+
+        <select
+          value={`${sortBy}-${sortOrder}`}
+          onChange={(e) => {
+            const [field, order] = e.target.value.split('-') as ['createdAt' | 'question', 'ASC' | 'DESC'];
+            setSortBy(field);
+            setSortOrder(order);
+          }}
+          className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3"
+        >
+          <option value="createdAt-DESC">Новіші спочатку</option>
+          <option value="createdAt-ASC">Старіші спочатку</option>
+          <option value="question-ASC">За алфавітом (А-Я)</option>
+          <option value="question-DESC">За алфавітом (Я-А)</option>
+        </select>
+      </div>
+
       {showForm && (
         <div className="bg-slate-900 p-6 rounded-2xl mb-6 border border-slate-800">
           <input
-            className="w-full mb-3 p-3 bg-slate-800 rounded-xl"
+            className="w-full mb-3 p-3 bg-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500"
             placeholder="Питання"
             value={form.question}
             onChange={(e) => setForm({ ...form, question: e.target.value })}
           />
           <textarea
-            className="w-full mb-3 p-3 bg-slate-800 rounded-xl"
+            className="w-full mb-3 p-3 bg-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 min-h-[120px]"
             placeholder="Відповідь"
             value={form.answer}
             onChange={(e) => setForm({ ...form, answer: e.target.value })}
           />
           <select
-            className="w-full mb-3 p-3 bg-slate-800 rounded-xl"
+            className="w-full mb-3 p-3 bg-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500"
             value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            onChange={(e) => setForm({ ...form, category: e.target.value as any })}
           >
             <option value="ADMISSION">ADMISSION</option>
             <option value="DOCUMENTS">DOCUMENTS</option>
@@ -168,16 +217,17 @@ const AdminFaq = () => {
             <option value="TEACHERS">TEACHERS</option>
             <option value="OTHER">OTHER</option>
           </select>
+
           <div className="flex gap-3">
             <button
               onClick={handleSubmit}
-              className="bg-cyan-500 px-4 py-2 rounded-xl"
+              className="bg-cyan-500 hover:bg-cyan-400 px-6 py-2.5 rounded-xl text-black font-medium transition"
             >
               {editingId ? 'Оновити' : 'Створити'}
             </button>
             <button
               onClick={resetForm}
-              className="bg-slate-700 px-4 py-2 rounded-xl"
+              className="bg-slate-700 hover:bg-slate-600 px-6 py-2.5 rounded-xl transition"
             >
               Скасувати
             </button>
@@ -185,14 +235,14 @@ const AdminFaq = () => {
         </div>
       )}
 
-      
       <div className="space-y-3">
         {loading ? (
-          <p className="text-slate-400">Завантаження...</p>
+          <p className="text-slate-400 py-8 text-center">Завантаження...</p>
+        ) : items.length === 0 ? (
+          <p className="text-slate-400 py-8 text-center">Нічого не знайдено</p>
         ) : (
           items.map((item: any) => {
             const status = getItemStatus(item);
-
             const borderClass =
               status === 'student'
                 ? 'border-red-500/40 border-l-4 border-l-red-500'
@@ -203,71 +253,55 @@ const AdminFaq = () => {
             return (
               <div
                 key={item.id}
-                className={`bg-slate-900 p-4 rounded-2xl border flex justify-between ${borderClass}`}
+                className={`bg-slate-900 p-5 rounded-2xl border flex justify-between ${borderClass}`}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {status === 'student' && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-500/10 text-red-400 border border-red-500/30">
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-red-500/10 text-red-400 border border-red-500/30">
                         🔴 Нове від студента
                       </span>
                     )}
                     {status === 'awaiting' && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
                         🟡 Очікує відповідь
                       </span>
                     )}
-                    {status === 'normal' && (
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          item.isPublished
-                            ? 'bg-green-500/10 text-green-400'
-                            : 'bg-yellow-500/10 text-yellow-400'
-                        }`}
-                      >
-                        {item.isPublished ? 'published' : 'draft'}
-                      </span>
-                    )}
-                    <span className="text-xs text-slate-400">{item.category}</span>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">
+                      {item.category}
+                    </span>
                     <span className="text-xs text-slate-500">
-                      {new Date(item.createdAt).toLocaleString('uk-UA', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {new Date(item.createdAt).toLocaleString('uk-UA')}
                     </span>
                   </div>
 
-                  <h3 className="font-semibold">{item.question}</h3>
-                  <p className="text-slate-400 text-sm mt-1">
-                    {item.answer || '— немає відповіді —'}
+                  <h3 className="font-semibold text-lg mb-1">{item.question}</h3>
+                  <p className="text-slate-400 text-sm">
+                    {item.answer ? item.answer : '— немає відповіді —'}
                   </p>
 
-                  {status === 'normal' && (
-                    <button
-                      onClick={() => togglePublish(item)}
-                      className={`mt-2 text-xs px-2 py-1 rounded-lg border transition ${
-                        item.isPublished
-                          ? 'border-green-500 text-green-400 hover:bg-green-500/10'
-                          : 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10'
-                      }`}
-                    >
-                      Toggle
-                    </button>
-                  )}
+                  <button
+                    onClick={() => togglePublish(item)}
+                    className={`mt-3 text-xs px-3 py-1 rounded-lg border transition ${
+                      item.isPublished
+                        ? 'border-green-500 text-green-400 hover:bg-green-500/10'
+                        : 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10'
+                    }`}
+                  >
+                    {item.isPublished ? 'Зняти з публікації' : 'Опублікувати'}
+                  </button>
                 </div>
 
                 <div className="flex gap-2 ml-4 flex-shrink-0">
                   <button
                     onClick={() => handleEdit(item)}
-                    className="p-2 hover:bg-slate-800 rounded-lg"
+                    className="p-2 hover:bg-slate-800 rounded-lg transition"
                   >
                     <Pencil size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="p-2 hover:bg-red-500/20 rounded-lg"
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition"
                   >
                     <Trash size={18} />
                   </button>
@@ -277,6 +311,12 @@ const AdminFaq = () => {
           })
         )}
       </div>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 };
