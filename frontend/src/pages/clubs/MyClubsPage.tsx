@@ -43,11 +43,13 @@ const MyClubsPage = () => {
   }
 
   const getMemberCount = (club: any): number => {
-    if (typeof club.members === 'number') return club.members;
-    if (typeof club.memberCount === 'number') return club.memberCount;
-    if (typeof club.membersCount === 'number') return club.membersCount;
-    if (Array.isArray(club.members)) return club.members.length;
-    return 0;
+    return (
+      club.memberCount ?? 
+      club.membersCount ??
+      club.members ??
+      (Array.isArray(club.members) ? club.members.length : 0) ??
+      0
+    );
   };
 
   return (
