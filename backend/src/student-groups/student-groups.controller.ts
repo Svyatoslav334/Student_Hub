@@ -21,15 +21,11 @@ export class StudentGroupsController {
     return this.service.findAll();
   }
   
-@Get('my')
-@UseGuards(JwtAuthGuard)
-getMyGroup(@CurrentUser() user: JwtPayload) {
-  console.log('CurrentUser received:', user);   // ← подивись у логи Render
-  return { 
-    message: 'Route reached',
-    userReceived: user 
-  };
-}
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  getMyGroup(@CurrentUser() user: JwtPayload) {
+    return this.service.getMyGroup(user.sub);
+  }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
