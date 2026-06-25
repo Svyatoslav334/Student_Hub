@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash2, Edit, Pin } from 'lucide-react';
 import api from '../../services/api';
 import NewsModal from '../../components/admin/NewsModal';
-import Pagination from '../../components/Pagination';
+import Pagination from '../../components/admin/Pagination';
 
 const AdminNews = () => {
   const [news, setNews] = useState<any[]>([]);
