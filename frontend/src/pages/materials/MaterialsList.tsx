@@ -122,9 +122,9 @@ const MaterialsList = () => {
             {[1,2,3,4,5,6].map(i => <div key={i} className="h-80 bg-slate-900 rounded-3xl animate-pulse" />)}
           </div>
         ) : filteredMaterials.length > 0 ? (
+        <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredMaterials.map((material) => (
-            <>
               <div
                 key={material.id}
                 className="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:border-cyan-500/50 transition-all hover:-translate-y-1 flex flex-col cursor-pointer"
@@ -161,6 +161,8 @@ const MaterialsList = () => {
                   )}
                 </div>
               </div>
+            ))}
+          </div>
             <div className="flex justify-center items-center gap-4 mt-10">
               <button
                 disabled={page === 1}
@@ -183,8 +185,6 @@ const MaterialsList = () => {
               </button>
             </div>
           </>
-            ))}
-          </div>
         ) : (
           <div className="text-center py-20">
             <BookOpen size={64} className="mx-auto text-slate-700 mb-6" />
