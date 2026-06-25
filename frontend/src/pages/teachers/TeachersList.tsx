@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
-
-import { 
-  Users, 
-  Search, 
-  MapPin, 
-  Mail, 
+import {
+  Users,
+  Search,
+  MapPin,
+  Mail,
   Phone,
-  ArrowRight 
+  ArrowRight
 } from 'lucide-react';
 
 interface Teacher {
@@ -18,13 +17,13 @@ interface Teacher {
   cabinet?: string;
   photo?: string;
   createdAt: string;
+
   user: {
-    id: number;
     firstName?: string;
     lastName?: string;
-    avatar?: string;
     email?: string;
     phone?: string;
+    avatar?: string;
   };
 }
 
@@ -52,7 +51,7 @@ const TeachersList = () => {
   };
 
   const filteredTeachers = teachers.filter((teacher) =>
-    `${teacher.firstName} ${teacher.lastName}`
+    `${teacher.user?.firstName || ''} ${teacher.user?.lastName || ''}`
       .toLowerCase()
       .includes(search.toLowerCase()) ||
     teacher.department.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,7 +61,7 @@ const TeachersList = () => {
   const getAvatarUrl = (teacher: Teacher): string | null => {
     return teacher.user?.avatar || teacher.photo || null;
   };
-  
+
   const getFullName = (teacher: Teacher): string => {
     const first = teacher.user?.firstName || '';
     const last = teacher.user?.lastName || '';
@@ -74,10 +73,9 @@ const TeachersList = () => {
     const last = teacher.user?.lastName?.[0] || '';
     return (first + last).toUpperCase() || '👨‍🏫';
   };
-  
+
   const getAvatarColor = (str: string): string => {
     if (!str) return '#64748b';
-
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -89,7 +87,6 @@ const TeachersList = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-7xl px-6 py-12">
-        
         <div className="mb-12">
           <div className="flex items-center gap-4 mb-4">
             <Users size={36} className="text-cyan-400" />
@@ -101,7 +98,6 @@ const TeachersList = () => {
           <p className="text-slate-500">Знайдено: <span className="text-white font-medium">{total}</span> викладачів</p>
         </div>
 
-        
         <div className="relative mb-10">
           <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400">
             <Search size={20} />
@@ -115,7 +111,6 @@ const TeachersList = () => {
           />
         </div>
 
-        
         {loading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
@@ -130,39 +125,37 @@ const TeachersList = () => {
                 key={teacher.id}
                 className="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:border-cyan-500/50 transition-all hover:-translate-y-1 flex flex-col"
               >
-                
-              <div className="h-64 bg-slate-800 flex items-center justify-center overflow-hidden relative">
-                {(() => {
-                  const avatarUrl = getAvatarUrl(teacher);
-                  return avatarUrl ? (
-                    <img
-                      src={avatarUrl}                    
-                      alt={`${teacher.firstName || ''} ${teacher.lastName || ''}`}
-                      className="w-full h-full object-cover transition group-hover:scale-105"
-                    />
-                  ) : (
-                    <div
-                      className="w-32 h-32 rounded-full flex items-center justify-center text-6xl text-white shadow-inner font-medium"
-                      style={{
-                        backgroundColor: getAvatarColor(getFullName(teacher))
-                      }}
-                    >
-                      {getInitials(teacher)}
-                    </div>
-                  );
-                })()}
+                <div className="h-64 bg-slate-800 flex items-center justify-center overflow-hidden relative">
+                  {(() => {
+                    const avatarUrl = getAvatarUrl(teacher);
+                    return avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={getFullName(teacher)}
+                        className="w-full h-full object-cover transition group-hover:scale-105"
+                      />
+                    ) : (
+                      <div
+                        className="w-32 h-32 rounded-full flex items-center justify-center text-6xl text-white shadow-inner font-medium"
+                        style={{
+                          backgroundColor: getAvatarColor(getFullName(teacher))
+                        }}
+                      >
+                        {getInitials(teacher)}
+                      </div>
+                    );
+                  })()}
 
-                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
-                  {teacher.department}
+                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
+                    {teacher.department}
+                  </div>
                 </div>
-              </div>
 
-                
                 <div className="p-6 flex-1 flex flex-col">
                   <h3 className="text-2xl font-semibold mb-1 group-hover:text-cyan-400 transition">
                     {getFullName(teacher)}
                   </h3>
-                  
+
                   <p className="text-cyan-400 font-medium mb-4">{teacher.subject}</p>
 
                   <div className="space-y-3 text-sm text-slate-400 flex-1">
@@ -173,26 +166,26 @@ const TeachersList = () => {
                       </div>
                     )}
 
-                    {teacher.email && (
+                    {teacher.user?.email && (
                       <div className="flex items-center gap-3">
                         <Mail size={18} className="text-slate-500" />
-                        <a 
-                          href={`mailto:${teacher.email}`} 
+                        <a
+                          href={`mailto:${teacher.user.email}`}
                           className="hover:text-cyan-400 transition"
                         >
-                          {teacher.email}
+                          {teacher.user.email}
                         </a>
                       </div>
                     )}
 
-                    {teacher.phone && (
+                    {teacher.user?.phone && (
                       <div className="flex items-center gap-3">
                         <Phone size={18} className="text-slate-500" />
-                        <a 
-                          href={`tel:${teacher.phone}`} 
+                        <a
+                          href={`tel:${teacher.user.phone}`}
                           className="hover:text-cyan-400 transition"
                         >
-                          {teacher.phone}
+                          {teacher.user.phone}
                         </a>
                       </div>
                     )}
