@@ -10,7 +10,7 @@ const UserMenu = ({ user, mobile = false }: { user: any; mobile?: boolean }) => 
   const fullName = `${user?.firstName || user?.profile?.firstName || ''} ${user?.lastName || user?.profile?.lastName || ''}`.trim();
   const isTeacher = user?.role === 'TEACHER';
   const isAdmin = user?.role === 'ADMIN';
-  const avatar = user?.avatar || user?.profile?.avatar || '/default-avatar.png';
+  const avatar = user?.avatar || user?.profile?.avatar || 'https://upmwhwnlxeeysddwzkzm.supabase.co/storage/v1/object/public/studenthub/avatars/default-avatar.png';
 
   
   if (mobile) {
