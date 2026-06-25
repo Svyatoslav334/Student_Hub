@@ -80,24 +80,31 @@ export class StudentGroupsService {
   }
 
 async getMyGroup(userId: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['studentGroup'],
-    });
-    if (!user?.studentGroup) {
-      throw new NotFoundException('Ви не входите до жодної групи');
-    }
-    const group = await this.groupRepo.findOne({
-      where: { id: user.studentGroup.id },
-      relations: [
-        'curator',
-        'curator.user',
-        'students',
-      ],
-    });
-    if (!group) throw new NotFoundException('Групу не знайдено');
-    return this.formatGroup(group, true);
-  }
+  const user = await this.userRepo.findOne({
+    where: { id: userId },
+    relations: ['studentGroup'],
+  });
+
+  if (user?.studentGroup) {
+    const group = await this.groupRepo.findOne({
+      where: { id: user.studentGroup.id },
+      relations: ['curator', 'curator.user', 'students'],
+    });
+    if (!group) throw new NotFoundException('Групу не знайдено');
+    return this.formatGroup(group, true);
+  }
+
+  const curatorGroup = await this.groupRepo.findOne({
+    where: { curator: { user: { id: userId } } },
+    relations: ['curator', 'curator.user', 'students'],
+  });
+
+  if (!curatorGroup) {
+    throw new NotFoundException('Ви не входите до жодної групи');
+  }
+
+  return this.formatGroup(curatorGroup, true);
+}
 
   async update(id: number, data: UpdateStudentGroupDto) {
     const group = await this.groupRepo.findOne({
