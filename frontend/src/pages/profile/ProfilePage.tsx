@@ -170,7 +170,7 @@ return (
       <div className="flex justify-center mb-10">
         <div className="relative group">
           <img
-            src={profile?.avatar || '/default-avatar.png'}
+            src={profile?.avatar || 'https://upmwhwnlxeeysddwzkzm.supabase.co/storage/v1/object/public/studenthub/avatars/default-avatar.png'}
             alt="avatar"
             className="w-32 h-32 rounded-2xl object-cover border-4 border-slate-700"
           />
