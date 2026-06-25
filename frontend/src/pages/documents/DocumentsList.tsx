@@ -34,6 +34,7 @@ const DocumentsList = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(9);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const fetchDocuments = async (pageNumber: number) => {
     setLoading(true);
@@ -43,6 +44,7 @@ const DocumentsList = () => {
   
       setDocuments(res.data.items);
       setTotalPages(res.data.totalPages);
+      setTotal(res.data.total);
       setPage(res.data.page);
     } catch (err) {
       console.error('Failed to load documents', err);
@@ -80,7 +82,7 @@ const DocumentsList = () => {
             </div>
           </div>
           <p className="text-slate-500">
-            Знайдено: <span className="text-white font-medium">{documents.length}</span> документів
+            Знайдено: <span className="text-white font-medium">{total}</span> документів
           </p>
         </div>
 
