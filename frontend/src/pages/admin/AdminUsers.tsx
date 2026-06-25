@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Search, User, Trash2, Edit } from 'lucide-react';
-
 import { api } from '../../services/api';
 import { toast } from 'sonner';
+import Pagination from '../../components/admin/Pagination';
 
 interface IUser {
   id: number;
   firstName?: string;
   lastName?: string;
-  fullName: string;        
+  fullName: string;
   email: string;
   role: 'STUDENT' | 'TEACHER' | 'ADMIN';
   createdAt: string;
@@ -22,11 +22,15 @@ interface IUser {
 const AdminUsers = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-
-  const [editingUser, setEditingUser] = useState<IUser | null>(null);
   const [groups, setGroups] = useState<any[]>([]);
 
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'STUDENT' | 'TEACHER' | 'ADMIN'>('all');
+
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 20;
+
+  const [editingUser, setEditingUser] = useState<IUser | null>(null);
   const [editForm, setEditForm] = useState({
     firstName: '',
     lastName: '',
@@ -61,6 +65,28 @@ const AdminUsers = () => {
     }
   };
 
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesSearch = `${user.fullName} ${user.email}`.toLowerCase().includes(search.toLowerCase());
+      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, search, roleFilter]);
+
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => b.id - a.id);
+  }, [filteredUsers]);
+
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    return sortedUsers.slice(start, start + itemsPerPage);
+  }, [sortedUsers, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, roleFilter]);
+
   const openEditModal = (user: IUser) => {
     setEditingUser(user);
     setEditForm({
@@ -73,7 +99,6 @@ const AdminUsers = () => {
 
   const handleSaveEdit = async () => {
     if (!editingUser) return;
-
     try {
       await api.put(`/users/${editingUser.id}`, {
         firstName: editForm.firstName.trim(),
@@ -81,7 +106,6 @@ const AdminUsers = () => {
         email: editForm.email.trim(),
         groupId: editForm.groupId ? Number(editForm.groupId) : null,
       });
-
       toast.success('Зміни збережено!');
       await fetchUsers();
       setEditingUser(null);
@@ -93,7 +117,6 @@ const AdminUsers = () => {
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Видалити користувача?')) return;
-
     try {
       await api.delete(`/users/${id}`);
       toast.success('Користувача видалено');
@@ -114,10 +137,6 @@ const AdminUsers = () => {
       toast.error('Не вдалося змінити роль');
     }
   };
-
-  const filteredUsers = users.filter((user) =>
-    `${user.fullName} ${user.email}`.toLowerCase().includes(search.toLowerCase())
-  );
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -140,22 +159,32 @@ const AdminUsers = () => {
           </p>
         </div>
 
-        <div className="relative">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Пошук користувачів..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-slate-900 border border-slate-800 rounded-2xl pl-11 pr-4 py-3 w-full lg:w-80 outline-none focus:border-cyan-500"
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 lg:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <input
+              type="text"
+              placeholder="Пошук користувачів..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-slate-900 border border-slate-800 rounded-2xl pl-11 pr-4 py-3 w-full outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value as any)}
+            className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3"
+          >
+            <option value="all">Всі ролі</option>
+            <option value="STUDENT">Студенти</option>
+            <option value="TEACHER">Викладачі</option>
+            <option value="ADMIN">Адміністратори</option>
+          </select>
         </div>
       </div>
 
-<div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-800/50 border-b border-slate-800">
@@ -167,7 +196,6 @@ const AdminUsers = () => {
                 <th className="text-right px-6 py-4 font-medium text-slate-300">Дії</th>
               </tr>
             </thead>
-
             <tbody>
               {loading ? (
                 <tr>
@@ -175,14 +203,14 @@ const AdminUsers = () => {
                     Завантаження...
                   </td>
                 </tr>
-              ) : filteredUsers.length === 0 ? (
+              ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-10 text-slate-400">
                     Користувачів не знайдено
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                paginatedUsers.map((user) => (
                   <tr
                     key={user.id}
                     className="border-b border-slate-800 hover:bg-slate-800/40 transition"
@@ -198,9 +226,7 @@ const AdminUsers = () => {
                         </div>
                       </div>
                     </td>
-
                     <td className="px-6 py-5 text-slate-300">{user.email}</td>
-
                     <td className="px-6 py-5">
                       <select
                         value={user.role}
@@ -212,11 +238,9 @@ const AdminUsers = () => {
                         <option value="ADMIN">ADMIN</option>
                       </select>
                     </td>
-
                     <td className="px-6 py-5 text-slate-300">
                       {user.studentGroup?.name || '—'}
                     </td>
-
                     <td className="px-6 py-5">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -225,7 +249,6 @@ const AdminUsers = () => {
                         >
                           <Edit size={18} />
                         </button>
-
                         <button
                           onClick={() => handleDelete(user.id)}
                           className="w-10 h-10 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition"
@@ -242,12 +265,12 @@ const AdminUsers = () => {
         </div>
       </div>
 
-      
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
       {editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 w-full max-w-md">
             <h2 className="text-2xl font-bold mb-6">Редагування користувача</h2>
-
             <div className="space-y-4">
               <input
                 type="text"
@@ -256,7 +279,6 @@ const AdminUsers = () => {
                 onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-cyan-500"
               />
-
               <input
                 type="text"
                 placeholder="Прізвище"
@@ -264,7 +286,6 @@ const AdminUsers = () => {
                 onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-cyan-500"
               />
-
               <input
                 type="email"
                 placeholder="Email"
@@ -272,7 +293,6 @@ const AdminUsers = () => {
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-cyan-500"
               />
-
               <div>
                 <label className="block text-sm text-slate-400 mb-2">Група</label>
                 <select
@@ -289,7 +309,6 @@ const AdminUsers = () => {
                 </select>
               </div>
             </div>
-
             <div className="flex justify-end gap-3 mt-8">
               <button
                 onClick={() => setEditingUser(null)}
@@ -297,7 +316,6 @@ const AdminUsers = () => {
               >
                 Скасувати
               </button>
-
               <button
                 onClick={handleSaveEdit}
                 className="px-5 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold transition"
