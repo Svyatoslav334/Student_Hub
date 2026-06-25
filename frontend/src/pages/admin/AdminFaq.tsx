@@ -25,15 +25,13 @@ const AdminFaq = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
-  
+
+  // Пагінація
   const [page, setPage] = useState(1);
-  
+
+  // Фільтри (тільки те, що підтримує бекенд)
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'awaiting' | 'student'>('all');
-  
-  const [sortBy, setSortBy] = useState<'createdAt' | 'question'>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'DESC' | 'ASC'>('DESC');
 
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -47,28 +45,26 @@ const AdminFaq = () => {
         limit: 20,
         search: search.trim() || undefined,
         category: categoryFilter || undefined,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        sortBy,
-        sortOrder,
-        showUnpublished: true,
+        showUnpublished: true,        // важливо для адміна
       });
 
       setItems(res.data.items || []);
       setTotalPages(res.data.totalPages || 1);
     } catch (err) {
-      console.error(err);
+      console.error('Помилка завантаження FAQ:', err);
     } finally {
       setLoading(false);
     }
-  }, [page, search, categoryFilter, statusFilter, sortBy, sortOrder]);
+  }, [page, search, categoryFilter]);
 
   useEffect(() => {
     loadFaq();
   }, [loadFaq]);
 
+  // Скидаємо на першу сторінку при зміні фільтрів
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, statusFilter, sortBy, sortOrder]);
+  }, [search, categoryFilter]);
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -124,6 +120,7 @@ const AdminFaq = () => {
 
   return (
     <div>
+      {/* Заголовок */}
       <div className="flex justify-between items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">FAQ</h1>
@@ -138,10 +135,11 @@ const AdminFaq = () => {
         </button>
       </div>
 
+      {/* Фільтри */}
       <div className="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
-          placeholder="Пошук по питанню або відповіді..."
+          placeholder="Пошук по питанню..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 flex-1 min-w-[260px] focus:border-cyan-500 outline-none"
@@ -161,35 +159,9 @@ const AdminFaq = () => {
           <option value="TEACHERS">TEACHERS</option>
           <option value="OTHER">OTHER</option>
         </select>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
-          className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3"
-        >
-          <option value="all">Всі статуси</option>
-          <option value="published">Опубліковані</option>
-          <option value="draft">Чернетки</option>
-          <option value="awaiting">Очікують відповіді</option>
-          <option value="student">Нові від студентів (24г)</option>
-        </select>
-
-        <select
-          value={`${sortBy}-${sortOrder}`}
-          onChange={(e) => {
-            const [field, order] = e.target.value.split('-') as ['createdAt' | 'question', 'ASC' | 'DESC'];
-            setSortBy(field);
-            setSortOrder(order);
-          }}
-          className="bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3"
-        >
-          <option value="createdAt-DESC">Новіші спочатку</option>
-          <option value="createdAt-ASC">Старіші спочатку</option>
-          <option value="question-ASC">За алфавітом (А-Я)</option>
-          <option value="question-DESC">За алфавітом (Я-А)</option>
-        </select>
       </div>
 
+      {/* Форма створення/редагування */}
       {showForm && (
         <div className="bg-slate-900 p-6 rounded-2xl mb-6 border border-slate-800">
           <input
@@ -235,6 +207,7 @@ const AdminFaq = () => {
         </div>
       )}
 
+      {/* Список FAQ */}
       <div className="space-y-3">
         {loading ? (
           <p className="text-slate-400 py-8 text-center">Завантаження...</p>
@@ -246,79 +219,4 @@ const AdminFaq = () => {
             const borderClass =
               status === 'student'
                 ? 'border-red-500/40 border-l-4 border-l-red-500'
-                : status === 'awaiting'
-                ? 'border-yellow-500/40 border-l-4 border-l-yellow-500'
-                : 'border-slate-800';
-
-            return (
-              <div
-                key={item.id}
-                className={`bg-slate-900 p-5 rounded-2xl border flex justify-between ${borderClass}`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {status === 'student' && (
-                      <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-red-500/10 text-red-400 border border-red-500/30">
-                        🔴 Нове від студента
-                      </span>
-                    )}
-                    {status === 'awaiting' && (
-                      <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
-                        🟡 Очікує відповідь
-                      </span>
-                    )}
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">
-                      {item.category}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {new Date(item.createdAt).toLocaleString('uk-UA')}
-                    </span>
-                  </div>
-
-                  <h3 className="font-semibold text-lg mb-1">{item.question}</h3>
-                  <p className="text-slate-400 text-sm">
-                    {item.answer ? item.answer : '— немає відповіді —'}
-                  </p>
-
-                  <button
-                    onClick={() => togglePublish(item)}
-                    className={`mt-3 text-xs px-3 py-1 rounded-lg border transition ${
-                      item.isPublished
-                        ? 'border-green-500 text-green-400 hover:bg-green-500/10'
-                        : 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10'
-                    }`}
-                  >
-                    {item.isPublished ? 'Зняти з публікації' : 'Опублікувати'}
-                  </button>
-                </div>
-
-                <div className="flex gap-2 ml-4 flex-shrink-0">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="p-2 hover:bg-slate-800 rounded-lg transition"
-                  >
-                    <Pencil size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition"
-                  >
-                    <Trash size={18} />
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
-    </div>
-  );
-};
-
-export default AdminFaq;
+                : status ===
