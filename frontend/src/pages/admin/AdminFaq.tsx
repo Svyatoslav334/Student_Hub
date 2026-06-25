@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash, Pencil } from 'lucide-react';
 import { faqApi } from '../../services/faqApi.service';
-import Pagination from '../../components/admin/Pagination';
+import Pagination from '../../components/Pagination';
 
 const emptyForm = {
   question: '',
@@ -219,4 +219,80 @@ const AdminFaq = () => {
             const borderClass =
               status === 'student'
                 ? 'border-red-500/40 border-l-4 border-l-red-500'
-                : status ===
+                : status === 'awaiting'
+                ? 'border-yellow-500/40 border-l-4 border-l-yellow-500'
+                : 'border-slate-800';
+
+            return (
+              <div
+                key={item.id}
+                className={`bg-slate-900 p-5 rounded-2xl border flex justify-between ${borderClass}`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {status === 'student' && (
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-red-500/10 text-red-400 border border-red-500/30">
+                        🔴 Нове від студента
+                      </span>
+                    )}
+                    {status === 'awaiting' && (
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
+                        🟡 Очікує відповідь
+                      </span>
+                    )}
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">
+                      {item.category}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {new Date(item.createdAt).toLocaleString('uk-UA')}
+                    </span>
+                  </div>
+
+                  <h3 className="font-semibold text-lg mb-1">{item.question}</h3>
+                  <p className="text-slate-400 text-sm">
+                    {item.answer ? item.answer : '— немає відповіді —'}
+                  </p>
+
+                  <button
+                    onClick={() => togglePublish(item)}
+                    className={`mt-3 text-xs px-3 py-1 rounded-lg border transition ${
+                      item.isPublished
+                        ? 'border-green-500 text-green-400 hover:bg-green-500/10'
+                        : 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10'
+                    }`}
+                  >
+                    {item.isPublished ? 'Зняти з публікації' : 'Опублікувати'}
+                  </button>
+                </div>
+
+                <div className="flex gap-2 ml-4 flex-shrink-0">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="p-2 hover:bg-slate-800 rounded-lg transition"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition"
+                  >
+                    <Trash size={18} />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Пагінація */}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+    </div>
+  );
+};
+
+export default AdminFaq;
