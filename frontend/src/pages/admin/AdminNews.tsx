@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, Pin } from 'lucide-react';
 import api from '../../services/api';
 import NewsModal from '../../components/admin/NewsModal';
-import Pagination from '../../components/admin/Pagination';
+import Pagination from '../../components/Pagination';
 
 const AdminNews = () => {
   const [news, setNews] = useState<any[]>([]);
@@ -10,7 +10,6 @@ const AdminNews = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   const [page, setPage] = useState(1);
-
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
@@ -112,32 +111,30 @@ const AdminNews = () => {
         <>
           <div className="flex flex-col gap-3 sm:hidden">
             {news.map((item) => (
-              <div
-                key={item.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-4"
-              >
+              <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{item.title}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-xs text-slate-400">{item.category}</span>
-                      {item.pinned && <span className="text-xs">📌 Закріплено</span>}
-                      <span className="text-xs text-slate-500">
-                        {new Date(item.createdAt).toLocaleDateString('uk-UA')}
-                      </span>
+                    <div className="flex items-center gap-2 mb-1">
+                      {item.pinned && <Pin size={16} className="text-amber-400" />}
+                      <p className="font-medium truncate">{item.title}</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <span>{item.category}</span>
+                      <span>•</span>
+                      <span>{new Date(item.createdAt).toLocaleDateString('uk-UA')}</span>
                     </div>
                   </div>
 
                   <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => openEdit(item)}
-                      className="p-2 rounded-xl bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition"
+                      className="p-2 rounded-xl bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"
                     >
                       <Edit size={16} />
                     </button>
                     <button
                       onClick={() => deleteNews(item.id)}
-                      className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
+                      className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -146,33 +143,44 @@ const AdminNews = () => {
               </div>
             ))}
           </div>
-          
+
           <div className="hidden sm:block bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
             <table className="w-full">
-              <thead className="text-left text-slate-400 border-b border-slate-800">
+              <thead className="text-left text-slate-400 border-b border-slate-800 bg-slate-950/50">
                 <tr>
-                  <th className="p-4">ID</th>
-                  <th>Заголовок</th>
-                  <th>Категорія</th>
-                  <th>Pinned</th>
-                  <th>Дата</th>
-                  <th className="text-right p-4">Дії</th>
+                  <th className="p-4 w-16">ID</th>
+                  <th className="p-4">Заголовок</th>
+                  <th className="p-4">Категорія</th>
+                  <th className="p-4 text-center">Pinned</th>
+                  <th className="p-4">Дата</th>
+                  <th className="text-right p-4 w-24">Дії</th>
                 </tr>
               </thead>
               <tbody>
                 {news.map((item) => (
                   <tr
                     key={item.id}
-                    className="border-b border-slate-800 hover:bg-slate-800/30 transition"
+                    className="border-b border-slate-800 hover:bg-slate-800/50 transition"
                   >
-                    <td className="p-4">{item.id}</td>
-                    <td className="font-medium">{item.title}</td>
-                    <td className="text-slate-400">{item.category}</td>
-                    <td className="text-center">
-                      {item.pinned ? '📌' : ''}
+                    <td className="p-4 font-mono text-slate-500">{item.id}</td>
+                    <td className="p-4 font-medium">
+                      <div className="flex items-center gap-2">
+                        {item.pinned && <Pin size={18} className="text-amber-400" />}
+                        {item.title}
+                      </div>
                     </td>
-                    <td className="text-slate-400">
-                      {new Date(item.createdAt).toLocaleDateString('uk-UA')}
+                    <td className="p-4 text-slate-400">{item.category}</td>
+                    <td className="p-4 text-center">
+                      {item.pinned ? '📌' : '—'}
+                    </td>
+                    <td className="p-4 text-slate-400">
+                      {new Date(item.createdAt).toLocaleString('uk-UA', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </td>
                     <td className="p-4">
                       <div className="flex justify-end gap-3">
@@ -198,11 +206,7 @@ const AdminNews = () => {
         </>
       )}
 
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <NewsModal
         isOpen={modalOpen}
