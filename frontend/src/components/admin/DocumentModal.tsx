@@ -40,7 +40,7 @@ const DocumentModal = ({ onClose, onSuccess, editData, categories }: any) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-      <div className="bg-slate-900 p-6 rounded-3xl w-[500px] space-y-3">
+      <div className="bg-slate-900 p-6 rounded-3xl modal-enter w-[500px] space-y-3">
         <h2 className="text-xl font-bold">
           {editData ? 'Редагувати' : 'Новий документ'}
         </h2>
