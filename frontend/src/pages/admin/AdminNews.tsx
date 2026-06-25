@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash2, Edit, Pin } from 'lucide-react';
 import api from '../../services/api';
 import NewsModal from '../../components/admin/NewsModal';
-import Pagination from '../../components/admin/Pagination';
+import Pagination from '../../components/Pagination';
 
 const AdminNews = () => {
   const [news, setNews] = useState<any[]>([]);
@@ -65,6 +65,8 @@ const AdminNews = () => {
     }
   };
 
+  const sortedNews = [...news].sort((a, b) => b.id - a.id);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8 gap-4">
@@ -105,12 +107,12 @@ const AdminNews = () => {
 
       {loading ? (
         <p className="text-slate-400 py-8 text-center">Завантаження...</p>
-      ) : news.length === 0 ? (
+      ) : sortedNews.length === 0 ? (
         <p className="text-slate-400 py-8 text-center">Новин не знайдено</p>
       ) : (
         <>
           <div className="flex flex-col gap-3 sm:hidden">
-            {news.map((item) => (
+            {sortedNews.map((item) => (
               <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0 flex-1">
@@ -157,7 +159,7 @@ const AdminNews = () => {
                 </tr>
               </thead>
               <tbody>
-                {news.map((item) => (
+                {sortedNews.map((item) => (
                   <tr
                     key={item.id}
                     className="border-b border-slate-800 hover:bg-slate-800/50 transition"
