@@ -51,16 +51,17 @@ function buildSVG(rooms: Room[], walls: Wall[]): string {
     const dash = r.type === 'corridor' ? ' stroke-dasharray="6,3"' : '';
     const textFill = r.type === 'room' ? '#1a4a6b' : '#7a6030';
     const fontSize = Math.min(14, Math.max(9, Math.floor(Math.min(r.w, r.h) / 4)));
-    return `  <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"${dash}/>
+    return ` <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"${dash}/>
   <text x="${r.x + Math.round(r.w / 2)}" y="${r.y + Math.round(r.h / 2) + Math.floor(fontSize / 3)}" text-anchor="middle" font-size="${fontSize}" font-family="monospace" fill="${textFill}" font-weight="600">${r.label}</text>`;
   }).join('\n');
 
   const lines = walls.map(w =>
-    `  <line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}" stroke="#334155" stroke-width="4" stroke-linecap="round"/>`
+    ` <line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}" stroke="#334155" stroke-width="4" stroke-linecap="round"/>`
   ).join('\n');
 
   return `<svg viewBox="0 0 ${CANVAS_W} ${CANVAS_H}" xmlns="http://www.w3.org/2000/svg" width="${CANVAS_W}" height="${CANVAS_H}">\n${rects}\n${lines}\n</svg>`;
 }
+
 
 function buildRoomsJSON(rooms: Room[]) {
   return rooms.map((r, i) => ({
@@ -121,9 +122,49 @@ const MapEditor = () => {
   const [resizingHandle, setResizingHandle] = useState<ResizeHandle | null>(null);
   const [resizeOrigin, setResizeOrigin] = useState<Room | null>(null); 
 
+  const [mapsList, setMapsList] = useState<any[]>([]);
+  const [isEditingExisting, setIsEditingExisting] = useState(false);
+  const [currentMapId, setCurrentMapId] = useState<number | null>(null);
+
   const svgRef = useRef<SVGSVGElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const labelRef = useRef<HTMLInputElement>(null);
+
+  const loadMapsList = async () => {
+    try {
+      const res = await api.get('/maps');
+      setMapsList(res.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const loadMap = async (mapId: number) => {
+    try {
+      const res = await api.get(`/maps/${mapId}`);
+      const map = res.data;
+
+      setRooms(map.rooms || []);
+      setWalls(map.walls || []);
+      setFloor(map.floor || 1);
+      setMapName(map.name || `Поверх ${map.floor}`);
+      setCurrentMapId(map.id);
+      setIsEditingExisting(true);
+
+      setHistory([{ rooms: map.rooms || [], walls: map.walls || [] }]);
+      setHistIdx(0);
+      setSelectedId(null);
+      setEditingId(null);
+
+      toast.success(`Завантажено: ${map.name}`);
+    } catch (err) {
+      toast.error('Не вдалося завантажити карту');
+    }
+  };
+
+  useEffect(() => {
+    loadMapsList();
+  }, []);
 
   useEffect(() => {
     if (editingId && labelRef.current) {
@@ -400,17 +441,51 @@ const MapEditor = () => {
       toast.error('Карта порожня — намалюй хоч одну кімнату');
       return;
     }
+
     setSaving(true);
     try {
       const svgData = buildSVG(rooms, walls);
-      const roomsJSON = buildRoomsJSON(rooms);
-      await api.post('/map', { floor, name: mapName, svgData, rooms: roomsJSON });
-      toast.success(`Карту "${mapName}" збережено!`);
+
+      if (isEditingExisting && currentMapId) {
+        await api.put(`/maps/${currentMapId}`, {
+          floor,
+          name: mapName,
+          svgData,
+          rooms,
+          walls
+        });
+        toast.success('Карту успішно оновлено!');
+      } else {
+        await api.post('/map', {
+          floor,
+          name: mapName,
+          svgData,
+          rooms,
+          walls
+        });
+        toast.success(`Карту "${mapName}" збережено!`);
+        setIsEditingExisting(false);
+        setCurrentMapId(null);
+      }
+
+      loadMapsList();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Помилка збереження');
     } finally {
       setSaving(false);
     }
+  };
+
+  const startNewMap = () => {
+    setRooms([]);
+    setWalls([]);
+    setIsEditingExisting(false);
+    setCurrentMapId(null);
+    setMapName(`Поверх ${floor}`);
+    setHistory([{ rooms: [], walls: [] }]);
+    setHistIdx(0);
+    setSelectedId(null);
+    setEditingId(null);
   };
 
   const handleExport = () => {
@@ -490,32 +565,44 @@ const MapEditor = () => {
 
   return (
     <div className="flex flex-col h-full" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-
-      
       <div className="flex items-center justify-between px-5 py-3 bg-slate-950 border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-lg font-bold text-slate-100 leading-none">Редактор карти</h1>
-            <p className="text-xs text-slate-500 mt-0.5">Малюй мишею · без лімітів</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <select
-                value={floor}
-                onChange={e => { setFloor(Number(e.target.value)); setMapName(`Поверх ${e.target.value}`); }}
-                className="appearance-none bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm pr-7 text-slate-200 focus:outline-none focus:border-cyan-500 transition"
-              >
-                {FLOOR_OPTIONS.map(f => <option key={f} value={f}>{f}-й поверх</option>)}
-              </select>
-              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-lg font-bold text-slate-100">Редактор карти</h1>
+                  <p className="text-xs text-slate-500">
+                    {isEditingExisting ? 'Редагування збереженої карти' : 'Нова карта'}
+                  </p>
+                </div>
+      
+                <div className="flex items-center gap-2">
+                  <select value={floor} onChange={e => { setFloor(Number(e.target.value)); setMapName(`Поверх ${e.target.value}`); }}
+                    className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200">
+                    {FLOOR_OPTIONS.map(f => <option key={f} value={f}>{f}-й поверх</option>)}
+                  </select>
+                  <input value={mapName} onChange={e => setMapName(e.target.value)}
+                    className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 w-52" />
+                </div>
+              </div>
+      
+              <div className="flex items-center gap-3">
+                <select onChange={e => e.target.value && loadMap(Number(e.target.value))} className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                  <option value="">— Завантажити карту —</option>
+                  {mapsList.map(m => (
+                    <option key={m.id} value={m.id}>{m.name} (Поверх {m.floor})</option>
+                  ))}
+                </select>
+      
+                <button onClick={startNewMap} className="px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+                  Нова карта
+                </button>
+      
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-2 px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition disabled:opacity-50">
+                  <Save size={16} />
+                  {saving ? 'Збереження...' : isEditingExisting ? 'Оновити' : 'Зберегти'}
+                </button>
+              </div>
             </div>
-            <input
-              value={mapName}
-              onChange={e => setMapName(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 w-36 focus:outline-none focus:border-cyan-500 transition"
-            />
-          </div>
-        </div>
 
         <div className="flex items-center gap-2">
           <button onClick={undo} disabled={histIdx <= 0}
