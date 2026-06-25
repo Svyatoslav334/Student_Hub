@@ -27,19 +27,30 @@ const MaterialsList = () => {
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
 
-  
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState('');
 
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+
   useEffect(() => {
-    fetchMaterials();
+    fetchMaterials(1);
   }, []);
 
-  const fetchMaterials = async () => {
+  const fetchMaterials = async (pageNumber = 1) => {
     setLoading(true);
+  
     try {
-      const res = await api.get('/materials');
-      setMaterials(res.data.items || res.data);
+      const res = await api.get(
+        `/materials?page=${pageNumber}&limit=${limit}`
+      );
+  
+      setMaterials(res.data.items);
+      setTotalPages(res.data.totalPages);
+      setTotal(res.data.total);
+      setPage(res.data.page);
     } catch (err) {
       console.error(err);
     } finally {
@@ -73,6 +84,9 @@ const MaterialsList = () => {
           <div>
             <h1 className="text-4xl font-bold">Навчальні матеріали</h1>
             <p className="text-slate-400">Лекції, презентації та методичні посібники</p>
+            <p className="text-slate-500 mt-2">
+              Знайдено: <span className="text-white font-medium">{total}</span> матеріалів
+            </p>
           </div>
         </div>
 
@@ -110,6 +124,7 @@ const MaterialsList = () => {
         ) : filteredMaterials.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredMaterials.map((material) => (
+            <>
               <div
                 key={material.id}
                 className="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:border-cyan-500/50 transition-all hover:-translate-y-1 flex flex-col cursor-pointer"
@@ -146,6 +161,28 @@ const MaterialsList = () => {
                   )}
                 </div>
               </div>
+            <div className="flex justify-center items-center gap-4 mt-10">
+              <button
+                disabled={page === 1}
+                onClick={() => fetchMaterials(page - 1)}
+                className="px-4 py-2 bg-slate-800 rounded-xl disabled:opacity-50"
+              >
+                Назад
+              </button>
+        
+              <span className="text-slate-300">
+                Сторінка {page} з {totalPages}
+              </span>
+        
+              <button
+                disabled={page === totalPages}
+                onClick={() => fetchMaterials(page + 1)}
+                className="px-4 py-2 bg-slate-800 rounded-xl disabled:opacity-50"
+              >
+                Вперед
+              </button>
+            </div>
+          </>
             ))}
           </div>
         ) : (
