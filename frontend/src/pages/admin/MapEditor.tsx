@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import {
   Save, Trash2, MousePointer, Square, Minus, Eraser,
   Image, Undo2, Redo2, ZoomIn, ZoomOut, Move, Grid,
-  Download, Eye, EyeOff, Lock, Unlock,
+  Download, Eye, EyeOff, Lock, Unlock, ChevronDown,
 } from 'lucide-react';
+
 
 type Tool = 'select' | 'room' | 'corridor' | 'wall' | 'erase' | 'pan';
 type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
@@ -32,13 +33,15 @@ interface HistoryState {
   walls: Wall[];
 }
 
+
 const CANVAS_W = 1280;
 const CANVAS_H = 1280;
 const GRID_SIZE = 20;
 const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
 const MAX_HISTORY = 50;
 const MIN_SIZE = 10;
-const HANDLE_SIZE = 8;
+const HANDLE_SIZE = 8; 
+
 
 function buildSVG(rooms: Room[], walls: Wall[]): string {
   const rects = rooms.map(r => {
@@ -78,20 +81,13 @@ function snapToGrid(v: number): number {
   return Math.round(v / GRID_SIZE) * GRID_SIZE;
 }
 
+
 const HANDLE_CURSORS: Record<ResizeHandle, string> = {
   nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize',
   e: 'e-resize', se: 'se-resize', s: 's-resize',
   sw: 'sw-resize', w: 'w-resize',
 };
 
-const TOOL_HINTS: Record<Tool, string> = {
-  select: '↖ Клікни → вибір · Тягни → переміщення · Хендли → resize · Del → видалити',
-  room: '⬜ Тягни → намалюй кімнату',
-  corridor: '▭ Тягни → намалюй коридор',
-  wall: '━ Тягни → намалюй стіну',
-  erase: '✕ Клікни → видалити',
-  pan: '✋ Тягни → переміщення · Scroll → зум',
-};
 
 const MapEditor = () => {
   const [tool, setTool] = useState<Tool>('room');
@@ -116,48 +112,18 @@ const MapEditor = () => {
   const [histIdx, setHistIdx] = useState(0);
   const [roomCounter, setRoomCounter] = useState(200);
   const [showPreview, setShowPreview] = useState(false);
+
+  
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  
   const [resizingHandle, setResizingHandle] = useState<ResizeHandle | null>(null);
-  const [resizeOrigin, setResizeOrigin] = useState<Room | null>(null);
-  const [mapsList, setMapsList] = useState<any[]>([]);
-  const [isEditingExisting, setIsEditingExisting] = useState(false);
-  const [currentMapId, setCurrentMapId] = useState<number | null>(null);
+  const [resizeOrigin, setResizeOrigin] = useState<Room | null>(null); 
 
   const svgRef = useRef<SVGSVGElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const labelRef = useRef<HTMLInputElement>(null);
-
-  const loadMapsList = async () => {
-    try {
-      const res = await api.get('/maps');
-      setMapsList(res.data || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const loadMap = async (mapId: number) => {
-    try {
-      const res = await api.get(`/maps/${mapId}`);
-      const map = res.data;
-      setRooms(map.rooms || []);
-      setWalls(map.walls || []);
-      setFloor(map.floor || 1);
-      setMapName(map.name || `Поверх ${map.floor}`);
-      setCurrentMapId(map.id);
-      setIsEditingExisting(true);
-      setHistory([{ rooms: map.rooms || [], walls: map.walls || [] }]);
-      setHistIdx(0);
-      setSelectedId(null);
-      setEditingId(null);
-      toast.success(`Завантажено: ${map.name}`);
-    } catch {
-      toast.error('Не вдалося завантажити карту');
-    }
-  };
-
-  useEffect(() => { loadMapsList(); }, []);
 
   useEffect(() => {
     if (editingId && labelRef.current) {
@@ -165,6 +131,7 @@ const MapEditor = () => {
     }
   }, [editingId]);
 
+  
   const pushHistory = useCallback((r: Room[], w: Wall[]) => {
     setHistory(prev => {
       const cut = prev.slice(0, histIdx + 1);
@@ -188,6 +155,7 @@ const MapEditor = () => {
     setHistIdx(histIdx + 1);
   }, [histIdx, history]);
 
+  
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
@@ -209,7 +177,8 @@ const MapEditor = () => {
         if (e.key === 'v') setTool('select');
         if (e.key === 'h') setTool('pan');
       }
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && selectedId) {
+      
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) && selectedId) {
         const step = e.shiftKey ? GRID_SIZE : 1;
         const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
         const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
@@ -228,6 +197,7 @@ const MapEditor = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo, selectedId, rooms, walls, pushHistory]);
 
+  
   const toSVGPoint = useCallback((e: React.MouseEvent, snap = true): { x: number; y: number } => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
@@ -241,6 +211,7 @@ const MapEditor = () => {
       : { x: Math.round(raw.x), y: Math.round(raw.y) };
   }, [snapGrid]);
 
+  
   const onHandleMouseDown = useCallback((e: React.MouseEvent, handle: ResizeHandle) => {
     e.stopPropagation();
     const room = rooms.find(r => r.id === selectedId);
@@ -249,6 +220,7 @@ const MapEditor = () => {
     setResizeOrigin({ ...room });
   }, [rooms, selectedId]);
 
+  
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
     const pt = toSVGPoint(e);
@@ -294,16 +266,19 @@ const MapEditor = () => {
     setDrawing({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
   }, [tool, rooms, walls, toSVGPoint, pushHistory, pan]);
 
+  
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     if (tool === 'pan' && isPanning) {
       setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
       return;
     }
 
+    
     if (resizingHandle && resizeOrigin && selectedId) {
       const pt = toSVGPoint(e);
       const o = resizeOrigin;
       let { x, y, w, h } = o;
+
       if (resizingHandle.includes('e')) w = Math.max(MIN_SIZE, pt.x - o.x);
       if (resizingHandle.includes('s')) h = Math.max(MIN_SIZE, pt.y - o.y);
       if (resizingHandle.includes('w')) {
@@ -316,10 +291,12 @@ const MapEditor = () => {
         h = o.y + o.h - newY;
         y = newY;
       }
+
       setRooms(prev => prev.map(r => r.id === selectedId ? { ...r, x, y, w, h } : r));
       return;
     }
 
+    
     if (tool === 'select' && isDragging && selectedId) {
       const pt = toSVGPoint(e);
       setRooms(prev => prev.map(r =>
@@ -335,6 +312,7 @@ const MapEditor = () => {
     setDrawing(prev => prev ? { ...prev, x2: pt.x, y2: pt.y } : null);
   }, [tool, isPanning, panStart, resizingHandle, resizeOrigin, selectedId, isDragging, dragOffset, drawing, toSVGPoint]);
 
+  
   const onMouseUp = useCallback(() => {
     if (isPanning) { setIsPanning(false); return; }
 
@@ -380,6 +358,7 @@ const MapEditor = () => {
     setDrawing(null);
   }, [isPanning, resizingHandle, isDragging, drawing, tool, walls, rooms, roomCounter, pushHistory]);
 
+  
   const applyLabel = () => {
     if (!editingId) return;
     const nr = rooms.map(r => r.id === editingId ? { ...r, label: labelInput } : r);
@@ -399,23 +378,23 @@ const MapEditor = () => {
     setSelectedId(null); setEditingId(null);
   };
 
+  
   const updateRoomField = (field: 'x' | 'y' | 'w' | 'h', value: number) => {
     if (!selectedId) return;
-    const nr = rooms.map(r => r.id === selectedId
-      ? { ...r, [field]: Math.max(field === 'w' || field === 'h' ? MIN_SIZE : 0, value) }
-      : r
-    );
+    const nr = rooms.map(r => r.id === selectedId ? { ...r, [field]: Math.max(field === 'w' || field === 'h' ? MIN_SIZE : 0, value) } : r);
     setRooms(nr);
   };
 
   const commitRoomField = () => pushHistory(rooms, walls);
 
+  
   const switchType = (type: 'room' | 'corridor') => {
     if (!selectedId) return;
     const nr = rooms.map(r => r.id === selectedId ? { ...r, type } : r);
     setRooms(nr); pushHistory(nr, walls);
   };
 
+  
   const handleSave = async () => {
     if (rooms.length === 0 && walls.length === 0) {
       toast.error('Карта порожня — намалюй хоч одну кімнату');
@@ -425,14 +404,8 @@ const MapEditor = () => {
     try {
       const svgData = buildSVG(rooms, walls);
       const roomsJSON = buildRoomsJSON(rooms);
-      if (isEditingExisting && currentMapId) {
-        await api.put(`/maps/${currentMapId}`, { floor, name: mapName, svgData, rooms, walls });
-        toast.success('Карту успішно оновлено!');
-      } else {
-        await api.post('/map', { floor, name: mapName, svgData, rooms: roomsJSON, walls });
-        toast.success(`Карту "${mapName}" збережено!`);
-      }
-      loadMapsList();
+      await api.post('/map', { floor, name: mapName, svgData, rooms: roomsJSON });
+      toast.success(`Карту "${mapName}" збережено!`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Помилка збереження');
     } finally {
@@ -440,20 +413,12 @@ const MapEditor = () => {
     }
   };
 
-  const startNewMap = () => {
-    setRooms([]); setWalls([]);
-    setIsEditingExisting(false); setCurrentMapId(null);
-    setMapName(`Поверх ${floor}`);
-    setHistory([{ rooms: [], walls: [] }]); setHistIdx(0);
-    setSelectedId(null); setEditingId(null);
-  };
-
   const handleExport = () => {
     const svg = buildSVG(rooms, walls);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${mapName}.svg`; a.click();
+    const a = document.createElement('a'); a.href = url;
+    a.download = `${mapName}.svg`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -468,6 +433,7 @@ const MapEditor = () => {
     setZoom(prev => Math.max(0.4, Math.min(3, prev - e.deltaY * 0.001)));
   };
 
+  
   const renderResizeHandles = (r: Room) => {
     const hs = HANDLE_SIZE;
     const handles: { handle: ResizeHandle; cx: number; cy: number }[] = [
@@ -493,14 +459,15 @@ const MapEditor = () => {
     ));
   };
 
+  
   const getCursor = () => {
     if (resizingHandle) return HANDLE_CURSORS[resizingHandle];
-    return ({
+    return {
       select: isDragging ? 'grabbing' : 'default',
       room: 'crosshair', corridor: 'crosshair', wall: 'crosshair',
       erase: 'cell',
       pan: isPanning ? 'grabbing' : 'grab',
-    } as Record<Tool, string>)[tool];
+    }[tool];
   };
 
   const previewRect = drawing && (tool === 'room' || tool === 'corridor') ? {
@@ -513,44 +480,81 @@ const MapEditor = () => {
   const selectedRoom = rooms.find(r => r.id === selectedId);
 
   const toolList: { id: Tool; icon: React.ReactNode; label: string; key: string }[] = [
-    { id: 'select',   icon: <MousePointer size={15} />, label: 'Вибір',   key: 'V' },
-    { id: 'room',     icon: <Square size={15} />,       label: 'Кімната', key: 'R' },
-    { id: 'corridor', icon: <Grid size={15} />,         label: 'Коридор', key: 'C' },
-    { id: 'wall',     icon: <Minus size={15} />,        label: 'Стіна',   key: 'W' },
-    { id: 'erase',    icon: <Eraser size={15} />,       label: 'Стерти',  key: 'E' },
-    { id: 'pan',      icon: <Move size={15} />,         label: 'Рух',     key: 'H' },
+    { id: 'select',   icon: <MousePointer size={15} />, label: 'Вибір',    key: 'V' },
+    { id: 'room',     icon: <Square size={15} />,       label: 'Кімната',  key: 'R' },
+    { id: 'corridor', icon: <Grid size={15} />,         label: 'Коридор',  key: 'C' },
+    { id: 'wall',     icon: <Minus size={15} />,        label: 'Стіна',    key: 'W' },
+    { id: 'erase',    icon: <Eraser size={15} />,       label: 'Стерти',   key: 'E' },
+    { id: 'pan',      icon: <Move size={15} />,         label: 'Рух',      key: 'H' },
   ];
+
+  useEffect(() => {
+    loadMap();
+  }, [floor]);
+
+  const loadMap = async () => {
+    try {
+      const { data } = await api.get(`/map?floor=${floor}`);
+  
+      if (!data) return;
+  
+      setMapName(data.name);
+  
+      const loadedRooms = (data.rooms || []).map((room: any) => ({
+        id: room.id,
+        x: room.x,
+        y: room.y,
+        w: room.width,
+        h: room.height,
+        label: room.label || room.name,
+        type: room.type || 'room',
+        locked: false,
+      }));
+  
+      setRooms(loadedRooms);
+  
+      setHistory([
+        {
+          rooms: loadedRooms,
+          walls: [],
+        },
+      ]);
+  
+      setHistIdx(0);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
 
-      {/* ── TOP HEADER ── */}
-      <div className="flex items-center justify-between px-5 py-3 bg-slate-950 border-b border-slate-800 shrink-0 gap-3 flex-wrap">
-        {/* Left: title + floor + name */}
+      
+      <div className="flex items-center justify-between px-5 py-3 bg-slate-950 border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-lg font-bold text-slate-100 leading-none">Редактор карти</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isEditingExisting ? 'Редагування збереженої карти' : 'Нова карта'}
-            </p>
+            <p className="text-xs text-slate-500 mt-0.5">Малюй мишею · без лімітів</p>
           </div>
           <div className="flex items-center gap-2">
-            <select
-              value={floor}
-              onChange={e => { setFloor(Number(e.target.value)); setMapName(`Поверх ${e.target.value}`); }}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition"
-            >
-              {FLOOR_OPTIONS.map(f => <option key={f} value={f}>{f}-й поверх</option>)}
-            </select>
+            <div className="relative">
+              <select
+                value={floor}
+                onChange={e => { setFloor(Number(e.target.value)); setMapName(`Поверх ${e.target.value}`); }}
+                className="appearance-none bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm pr-7 text-slate-200 focus:outline-none focus:border-cyan-500 transition"
+              >
+                {FLOOR_OPTIONS.map(f => <option key={f} value={f}>{f}-й поверх</option>)}
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            </div>
             <input
               value={mapName}
               onChange={e => setMapName(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 w-44 focus:outline-none focus:border-cyan-500 transition"
+              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 w-36 focus:outline-none focus:border-cyan-500 transition"
             />
           </div>
         </div>
 
-        {/* Center: undo/redo + toggles + zoom */}
         <div className="flex items-center gap-2">
           <button onClick={undo} disabled={histIdx <= 0}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30 transition" title="Скасувати (Ctrl+Z)">
@@ -581,46 +585,28 @@ const MapEditor = () => {
             className="p-2 rounded-xl text-slate-400 hover:bg-slate-800 transition"><ZoomOut size={16} /></button>
           <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
             className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-slate-800 transition">1:1</button>
-        </div>
 
-        {/* Right: load map + new + export + save */}
-        <div className="flex items-center gap-2">
-          <select
-            onChange={e => e.target.value && loadMap(Number(e.target.value))}
-            defaultValue=""
-            className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-cyan-500 transition"
-          >
-            <option value="">— Завантажити карту —</option>
-            {mapsList.map(m => (
-              <option key={m.id} value={m.id}>{m.name} (Поверх {m.floor})</option>
-            ))}
-          </select>
-
-          <button onClick={startNewMap}
-            className="px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
-            Нова карта
-          </button>
+          <div className="w-px h-6 bg-slate-700 mx-1" />
 
           <button onClick={handleExport}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-800 transition">
             <Download size={14} />SVG
           </button>
-
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl text-sm transition disabled:opacity-50">
             <Save size={14} />
-            {saving ? 'Збереження...' : isEditingExisting ? 'Оновити' : 'Зберегти'}
+            {saving ? 'Збереження...' : 'Зберегти'}
           </button>
         </div>
       </div>
 
-      {/* ── BODY ── */}
+      
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
-        {/* ── LEFT SIDEBAR ── */}
+        
         <div className="w-52 shrink-0 flex flex-col gap-3 p-3 bg-slate-950 border-r border-slate-800 overflow-y-auto">
 
-          {/* Tools */}
+          
           <div>
             <p className="text-[10px] text-slate-600 font-bold tracking-widest mb-2 px-1">ІНСТРУМЕНТИ</p>
             <div className="space-y-0.5">
@@ -640,7 +626,7 @@ const MapEditor = () => {
             </div>
           </div>
 
-          {/* Snap */}
+          
           <button onClick={() => setSnapGrid(v => !v)}
             className={`flex items-center justify-between w-full px-3 py-2 rounded-xl text-sm transition ${
               snapGrid ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'text-slate-500 hover:bg-slate-800'
@@ -649,11 +635,12 @@ const MapEditor = () => {
             <span className={`w-2.5 h-2.5 rounded-full ${snapGrid ? 'bg-violet-400' : 'bg-slate-700'}`} />
           </button>
 
-          {/* Selected room panel */}
+          
           {selectedRoom && (
             <div className="bg-slate-900 border border-cyan-500/30 rounded-xl p-3 space-y-2.5">
               <p className="text-[10px] text-slate-500 font-bold tracking-widest">ВИБРАНО</p>
 
+              
               {editingId === selectedRoom.id ? (
                 <div>
                   <input
@@ -675,10 +662,11 @@ const MapEditor = () => {
                 </button>
               )}
 
-              {/* Type toggle */}
+              
               <div className="flex gap-1">
                 {(['room', 'corridor'] as const).map(t => (
-                  <button key={t} onClick={() => switchType(t)}
+                  <button key={t}
+                    onClick={() => switchType(t)}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition ${
                       selectedRoom.type === t
                         ? t === 'room'
@@ -691,7 +679,7 @@ const MapEditor = () => {
                 ))}
               </div>
 
-              {/* Numeric fields */}
+              
               <div className="grid grid-cols-2 gap-1.5">
                 {(['x', 'y', 'w', 'h'] as const).map(field => (
                   <label key={field} className="flex flex-col gap-0.5">
@@ -710,7 +698,7 @@ const MapEditor = () => {
                 ))}
               </div>
 
-              {/* Lock / Delete */}
+              
               <div className="flex gap-1.5">
                 <button onClick={() => toggleLock(selectedRoom.id)}
                   className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs transition ${
@@ -733,7 +721,7 @@ const MapEditor = () => {
             </div>
           )}
 
-          {/* Background image */}
+          
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
             <p className="text-[10px] text-slate-600 font-bold tracking-widest mb-2">ПІДКЛАДКА</p>
             <button onClick={() => fileRef.current?.click()}
@@ -756,7 +744,7 @@ const MapEditor = () => {
             )}
           </div>
 
-          {/* Stats */}
+          
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs space-y-1.5">
             <p className="text-[10px] text-slate-600 font-bold tracking-widest mb-1">СТАТИСТИКА</p>
             <div className="flex justify-between text-slate-400">
@@ -776,12 +764,21 @@ const MapEditor = () => {
           </button>
         </div>
 
-        {/* ── CANVAS AREA ── */}
+        
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-slate-950">
 
-          {/* Hint bar */}
+          
           <div className="px-4 py-1.5 border-b border-slate-800/50 flex items-center justify-between shrink-0">
-            <p className="text-xs text-slate-600">{TOOL_HINTS[tool]}</p>
+            <p className="text-xs text-slate-600">
+              {{
+                select: '↖ Клікни → вибір · Тягни → переміщення · Хендли → resize · Del → видалити',
+                room: '⬜ Тягни → намалюй кімнату',
+                corridor: '▭ Тягни → намалюй коридор',
+                wall: '━ Тягни → намалюй стіну',
+                erase: '✕ Клікни → видалити',
+                pan: '✋ Тягни → переміщення · Scroll → зум',
+              }[tool]}
+            </p>
             <div className="flex items-center gap-3 text-xs text-slate-600">
               <span>{CANVAS_W}×{CANVAS_H}</span>
               {drawing && (tool === 'room' || tool === 'corridor') && (
@@ -797,7 +794,6 @@ const MapEditor = () => {
             </div>
           </div>
 
-          {/* Canvas */}
           <div className="flex-1 overflow-hidden relative bg-[#0f1117]"
             style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)', backgroundSize: '24px 24px' }}>
             <div
@@ -847,7 +843,7 @@ const MapEditor = () => {
                   </>
                 )}
 
-                {/* Corridors */}
+                
                 {rooms.filter(r => r.type === 'corridor').map(r => {
                   const fs = Math.min(13, Math.max(8, Math.floor(Math.min(r.w, r.h) / 4)));
                   const sel = selectedId === r.id;
@@ -865,7 +861,7 @@ const MapEditor = () => {
                   );
                 })}
 
-                {/* Rooms */}
+                
                 {rooms.filter(r => r.type === 'room').map(r => {
                   const fs = Math.min(14, Math.max(9, Math.floor(Math.min(r.w, r.h) / 4)));
                   const sel = selectedId === r.id;
@@ -886,19 +882,19 @@ const MapEditor = () => {
                   );
                 })}
 
-                {/* Walls */}
+                
                 {walls.map(w => (
                   <line key={w.id} x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
                     stroke="#334155" strokeWidth={4} strokeLinecap="round" />
                 ))}
 
-                {/* Wall preview */}
+                
                 {drawing && tool === 'wall' && (
                   <line x1={drawing.x1} y1={drawing.y1} x2={drawing.x2} y2={drawing.y2}
                     stroke="#0ea5e9" strokeWidth={3} strokeDasharray="6,3" strokeLinecap="round" opacity={0.8} />
                 )}
 
-                {/* Room/corridor draw preview */}
+                
                 {previewRect && previewRect.w > 2 && previewRect.h > 2 && (
                   <g>
                     <rect x={previewRect.x} y={previewRect.y} width={previewRect.w} height={previewRect.h}
@@ -915,7 +911,7 @@ const MapEditor = () => {
           </div>
         </div>
 
-        {/* ── SVG PREVIEW PANEL ── */}
+        
         {showPreview && (
           <div className="w-64 shrink-0 border-l border-slate-800 bg-slate-950 flex flex-col">
             <div className="px-4 py-3 border-b border-slate-800">
@@ -930,7 +926,7 @@ const MapEditor = () => {
         )}
       </div>
 
-      {/* ── FOOTER LEGEND ── */}
+      
       <div className="px-5 py-2.5 bg-slate-950 border-t border-slate-800 flex items-center gap-6 shrink-0">
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-3.5 rounded-sm border-2 border-slate-500" style={{ background: '#e8f4f8' }} />
