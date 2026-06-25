@@ -7,12 +7,19 @@ import {
 interface Props {
   clubs: any[];
   currentClubId: number;
+  currentClubMembersCount?: number;
 }
+
 
 const ChatSidebar = ({
   clubs,
   currentClubId,
 }: Props) => {
+
+  const memberCount = active
+    ? (currentClubMembersCount ?? club.members?.length ?? 0)
+    : (club.members?.length ?? 0);
+  
   return (
     <div
       className="
@@ -81,7 +88,7 @@ const ChatSidebar = ({
                     }
                   `}
                 >
-                  {Array.isArray(club.members) ? club.members.length : (club.members ?? 0)} учасників
+                   {memberCount} учасників
                 </p>
               </div>
             </Link>
