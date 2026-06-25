@@ -79,7 +79,7 @@ const MyClubsPage = () => {
                 <div className="flex items-center gap-2 text-sm text-slate-500 mt-5">
                   <Users size={16} />
 
-                  {club.members || 0} учасників
+                  {Array.isArray(club.members) ? club.members.length : (club.members ?? 0)} учасників
                 </div>
 
                 <div className="mt-6 flex gap-3">
