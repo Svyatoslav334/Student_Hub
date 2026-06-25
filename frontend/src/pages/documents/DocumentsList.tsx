@@ -35,7 +35,7 @@ const DocumentsList = () => {
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchDocuments = async (pageNumber = 1) => {
+  const fetchDocuments = async (pageNumber: number) => {
     setLoading(true);
   
     try {
