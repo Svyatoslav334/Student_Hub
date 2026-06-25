@@ -70,10 +70,10 @@ const Home = () => {
     const fetchAll = async () => {
       try {
         const [newsRes, clubsRes, faqRes, teachersRes] = await Promise.all([
-          api.get('/news', { params: { limit: 3 } }),
+          api.get('/news', { params: { limit: 5 } }),
           api.get('/clubs', { params: { limit: 6 } }),
           api.get('/faq', { params: { limit: 4 } }),
-          api.get('/teachers', { params: { limit: 1 } }),
+          api.get('/teachers'),
         ]);
 
         setNews(newsRes.data.items || []);
