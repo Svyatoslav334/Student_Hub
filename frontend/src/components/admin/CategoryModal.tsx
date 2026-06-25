@@ -17,7 +17,7 @@ const CategoryModal = ({ categories, onClose, onSuccess }: any) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-      <div className="bg-slate-900 p-6 rounded-3xl w-[400px]">
+      <div className="bg-slate-900 p-6 rounded-3xl modal-enter w-[400px]">
         <h2 className="text-xl font-bold mb-3">Категорії</h2>
 
         <div className="flex gap-2 mb-4">
