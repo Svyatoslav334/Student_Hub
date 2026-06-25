@@ -99,7 +99,7 @@ const ClubChat = ({ clubId }: Props) => {
   return (
     <div className="h-[90vh] bg-slate-950 flex overflow-hidden rounded-3xl border border-slate-800">
       <div className="hidden lg:flex">
-        <ChatSidebar clubs={clubs} currentClubId={clubId} />
+        <ChatSidebar clubs={clubs} currentClubId={clubId} currentClubMembersCount={club.members?.length || 0} />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
