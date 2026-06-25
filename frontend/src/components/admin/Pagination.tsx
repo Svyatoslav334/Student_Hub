@@ -10,7 +10,6 @@ const Pagination = ({ page, totalPages, onPageChange }: Props) => {
   if (totalPages <= 1) return null;
 
   const pages: (number | '...')[] = [];
-
   if (totalPages <= 7) {
     for (let i = 1; i <= totalPages; i++) pages.push(i);
   } else {
@@ -24,7 +23,7 @@ const Pagination = ({ page, totalPages, onPageChange }: Props) => {
   }
 
   return (
-    <div className="flex items-center justify-center gap-1 mt-6">
+    <div className="flex items-center justify-center gap-1 mt-8">
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
@@ -35,16 +34,14 @@ const Pagination = ({ page, totalPages, onPageChange }: Props) => {
 
       {pages.map((p, i) =>
         p === '...' ? (
-          <span key={`dots-${i}`} className="w-9 h-9 flex items-center justify-center text-slate-500 text-sm">
-            …
-          </span>
+          <span key={`dots-${i}`} className="w-9 h-9 flex items-center justify-center text-slate-500">…</span>
         ) : (
           <button
             key={p}
             onClick={() => onPageChange(p as number)}
             className={`w-9 h-9 rounded-xl text-sm font-medium transition ${
               p === page
-                ? 'bg-cyan-500 text-black'
+                ? 'bg-cyan-500 text-black font-semibold'
                 : 'bg-slate-800 hover:bg-slate-700 text-white'
             }`}
           >
