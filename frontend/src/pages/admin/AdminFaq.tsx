@@ -26,10 +26,8 @@ const AdminFaq = () => {
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Пагінація
   const [page, setPage] = useState(1);
 
-  // Фільтри (тільки те, що підтримує бекенд)
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
@@ -45,7 +43,7 @@ const AdminFaq = () => {
         limit: 20,
         search: search.trim() || undefined,
         category: categoryFilter || undefined,
-        showUnpublished: true,        // важливо для адміна
+        showUnpublished: true, 
       });
 
       setItems(res.data.items || []);
@@ -61,7 +59,6 @@ const AdminFaq = () => {
     loadFaq();
   }, [loadFaq]);
 
-  // Скидаємо на першу сторінку при зміні фільтрів
   useEffect(() => {
     setPage(1);
   }, [search, categoryFilter]);
@@ -120,7 +117,6 @@ const AdminFaq = () => {
 
   return (
     <div>
-      {/* Заголовок */}
       <div className="flex justify-between items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">FAQ</h1>
@@ -135,7 +131,6 @@ const AdminFaq = () => {
         </button>
       </div>
 
-      {/* Фільтри */}
       <div className="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
@@ -161,7 +156,6 @@ const AdminFaq = () => {
         </select>
       </div>
 
-      {/* Форма створення/редагування */}
       {showForm && (
         <div className="bg-slate-900 p-6 rounded-2xl mb-6 border border-slate-800">
           <input
@@ -207,7 +201,6 @@ const AdminFaq = () => {
         </div>
       )}
 
-      {/* Список FAQ */}
       <div className="space-y-3">
         {loading ? (
           <p className="text-slate-400 py-8 text-center">Завантаження...</p>
@@ -285,7 +278,6 @@ const AdminFaq = () => {
         )}
       </div>
 
-      {/* Пагінація */}
       <Pagination
         page={page}
         totalPages={totalPages}
