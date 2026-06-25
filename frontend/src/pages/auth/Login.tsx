@@ -2,32 +2,45 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authService, type LoginDto } from '../../services/authService';
+import { useValidation, RULES } from '../../hooks/useValidation';
+
+const FIELD_RULES = {
+  email:    [RULES.required(), RULES.email()],
+  password: [RULES.required(), RULES.minLength(6)],
+};
+
+const inputCls = (touched: boolean, error: string) =>
+  `w-full bg-slate-800 border rounded-xl px-4 py-3 focus:outline-none transition ${
+    !touched ? 'border-slate-700 focus:border-cyan-500' :
+    error ? 'border-red-500 focus:border-red-500' : 'border-green-500 focus:border-green-500'
+  }`;
 
 const Login = () => {
-  const [formData, setFormData] = useState<LoginDto>({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState<LoginDto>({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
+  const { errors, touched, touchField, validateField, validateAll } = useValidation(FIELD_RULES);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+  const set = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (touched[field]) validateField(field, value);
+  };
 
-        try {
-            const response = await authService.login(formData);
-            await useAuthStore.getState().login(response.access_token);
-            navigate('/');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Невірний email або пароль');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateAll({ email: formData.email, password: formData.password })) return;
+    setLoading(true);
+    try {
+      const response = await authService.login(formData);
+      await useAuthStore.getState().login(response.access_token);
+      navigate('/');
+    } catch (err: any) {
+      touchField('email', formData.email);
+      touchField('password', formData.password);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
@@ -38,32 +51,36 @@ const Login = () => {
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label className="block text-sm text-slate-400 mb-1">Email</label>
               <input
                 type="email"
-                required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500"
+                onChange={e => set('email', e.target.value)}
+                onBlur={e => touchField('email', e.target.value)}
+                className={inputCls(!!touched.email, errors.email)}
                 placeholder="your@email.com"
               />
+              {touched.email && errors.email && (
+                <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm text-slate-400 mb-1">Пароль</label>
               <input
                 type="password"
-                required
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500"
+                onChange={e => set('password', e.target.value)}
+                onBlur={e => touchField('password', e.target.value)}
+                className={inputCls(!!touched.password, errors.password)}
                 placeholder="••••••••"
               />
+              {touched.password && errors.password && (
+                <p className="text-red-400 text-xs mt-1">{errors.password}</p>
+              )}
             </div>
-
-            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button
               type="submit"
@@ -76,9 +93,7 @@ const Login = () => {
 
           <p className="text-center text-slate-400 mt-6">
             Немає акаунту?{' '}
-            <Link to="/register" className="text-cyan-400 hover:underline">
-              Зареєструватися
-            </Link>
+            <Link to="/register" className="text-cyan-400 hover:underline">Зареєструватися</Link>
           </p>
         </div>
       </div>
