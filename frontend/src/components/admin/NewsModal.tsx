@@ -65,7 +65,7 @@ const NewsModal = ({ isOpen, onClose, onSuccess, initialData }: any) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-[900px] max-w-[95%] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-[900px] max-w-[95%] bg-slate-900 border border-slate-800 rounded-3xl card-hover animate-fade-in shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800">
           <div>
             <h2 className="text-xl font-semibold">{isEdit ? 'Редагування новини' : 'Створення новини'}</h2>
