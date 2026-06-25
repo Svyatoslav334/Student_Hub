@@ -81,7 +81,7 @@ const ChatSidebar = ({
                     }
                   `}
                 >
-                  {club.members?.length || 0}{' '}
+                  {club.members || 0} учасників
                   учасників
                 </p>
               </div>
