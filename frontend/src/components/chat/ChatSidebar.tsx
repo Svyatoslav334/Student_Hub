@@ -33,10 +33,6 @@ const ChatSidebar = ({
         {clubs.map((club) => {
           const active =
             club.id === currentClubId;
-          const memberCount = 
-              club.membersCount ?? 
-              club.memberCount ?? 
-              (Array.isArray(club.members) ? club.members.length : 0);
 
           return (
             <Link
@@ -85,7 +81,8 @@ const ChatSidebar = ({
                     }
                   `}
                 >
-                  {memberCount} учасників
+                  {club.members?.length || 0}{' '}
+                  учасників
                 </p>
               </div>
             </Link>
