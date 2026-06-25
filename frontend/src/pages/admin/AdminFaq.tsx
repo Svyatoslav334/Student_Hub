@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash, Pencil } from 'lucide-react';
 import { faqApi } from '../../services/faqApi.service';
-import Pagination from '../../components/Pagination';
+import Pagination from '../../components/admin/Pagination';
 
 const emptyForm = {
   question: '',
