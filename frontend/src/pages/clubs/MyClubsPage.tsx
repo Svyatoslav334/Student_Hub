@@ -42,6 +42,14 @@ const MyClubsPage = () => {
     );
   }
 
+  const getMemberCount = (club: any): number => {
+    if (typeof club.members === 'number') return club.members;
+    if (typeof club.memberCount === 'number') return club.memberCount;
+    if (typeof club.membersCount === 'number') return club.membersCount;
+    if (Array.isArray(club.members)) return club.members.length;
+    return 0;
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
@@ -78,9 +86,7 @@ const MyClubsPage = () => {
 
                 <div className="flex items-center gap-2 text-sm text-slate-500 mt-5">
                   <Users size={16} />
-
-                  {club.members?.length || 0}{' '}
-                  учасників
+                  {getMemberCount(club)} учасників
                 </div>
 
                 <div className="mt-6 flex gap-3">
