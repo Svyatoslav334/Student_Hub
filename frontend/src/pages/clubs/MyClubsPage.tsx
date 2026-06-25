@@ -22,11 +22,13 @@ const MyClubsPage = () => {
 
   const fetchClubs = async () => {
     try {
-      const res = await api.get(
-        '/clubs/participated',
+      const res = await api.get('/clubs/participated');
+      const partial = res.data;
+      const full = await Promise.all(
+        partial.map((c: any) => api.get(`/clubs/${c.id}`).then(r => r.data))
       );
-
-      setClubs(res.data);
+  
+      setClubs(full);
     } catch (err) {
       console.error(err);
     } finally {
@@ -79,7 +81,7 @@ const MyClubsPage = () => {
                 <div className="flex items-center gap-2 text-sm text-slate-500 mt-5">
                   <Users size={16} />
 
-                  {Array.isArray(club.members) ? club.members.length : (club.members ?? 0)} учасників
+                  {club.members?.length || 0} учасників
                 </div>
 
                 <div className="mt-6 flex gap-3">
