@@ -31,15 +31,23 @@ const DocumentsList = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedTitle, setSelectedTitle] = useState('');
 
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     fetchDocuments();
   }, []);
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = async (pageNumber = 1) => {
     setLoading(true);
+  
     try {
-      const res = await api.get('/documents');
-      setDocuments(res.data.items || res.data);
+      const res = await api.get(`/documents?page=${pageNumber}&limit=${limit}`);
+  
+      setDocuments(res.data.items);
+      setTotalPages(res.data.totalPages);
+      setPage(res.data.page);
     } catch (err) {
       console.error('Failed to load documents', err);
     } finally {
@@ -58,6 +66,10 @@ const DocumentsList = () => {
     doc.description.toLowerCase().includes(search.toLowerCase()) ||
     doc.category.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    fetchDocuments(1);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -136,6 +148,27 @@ const DocumentsList = () => {
               </div>
             ))}
           </div>
+          <div className="flex justify-center items-center gap-4 mt-10">
+            <button
+              disabled={page === 1}
+              onClick={() => fetchDocuments(page - 1)}
+              className="px-4 py-2 bg-slate-800 rounded-xl disabled:opacity-50"
+            >
+              Назад
+            </button>
+          
+            <span className="text-slate-300">
+              Сторінка {page} з {totalPages}
+            </span>
+          
+            <button
+              disabled={page === totalPages}
+              onClick={() => fetchDocuments(page + 1)}
+              className="px-4 py-2 bg-slate-800 rounded-xl disabled:opacity-50"
+            >
+              Вперед
+            </button>
+          </div>
         ) : (
           <div className="text-center py-24">
             <FileText size={64} className="mx-auto text-slate-700 mb-6" />
@@ -180,9 +213,8 @@ const DocumentsList = () => {
           
           <div className="flex-1 bg-slate-950 p-4">
             <iframe
-              src={selectedFile}
+              src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedFile)}&embedded=true`}
               className="w-full h-full rounded-2xl border border-slate-700 bg-white"
-              title={selectedTitle}
             />
           </div>
 
