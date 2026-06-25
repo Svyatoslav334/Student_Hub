@@ -1,31 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../../services/api';
-
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Mail, 
-  Phone, 
-  Calendar} from 'lucide-react';
+import {
+  ArrowLeft,
+  MapPin,
+  Mail,
+  Phone,
+  Calendar
+} from 'lucide-react';
 
 interface TeacherDetail {
   id: number;
-  firstName?: string;
-  lastName?: string;
   department: string;
   subject: string;
   cabinet?: string;
-  phone?: string;
-  email?: string;
   photo?: string;
-  avatar?: string;
-  user?: {
-    avatar?: string;
-  };
   bio?: string;
   consultationHours?: string;
   createdAt: string;
+
+  user?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    avatar?: string;
+  };
 }
 
 const TeacherDetail = () => {
@@ -50,10 +50,23 @@ const TeacherDetail = () => {
     }
   };
 
-  
+  const getFullName = (t: TeacherDetail | null): string => {
+    if (!t) return 'Викладач';
+    const first = t.user?.firstName || '';
+    const last = t.user?.lastName || '';
+    return `${first} ${last}`.trim() || 'Без імені';
+  };
+
+  const getInitials = (t: TeacherDetail | null): string => {
+    if (!t) return '👨‍🏫';
+    const first = t.user?.firstName?.[0] || '';
+    const last = t.user?.lastName?.[0] || '';
+    return (first + last).toUpperCase() || '👨‍🏫';
+  };
+
   const getAvatarUrl = (t: TeacherDetail | null): string | undefined => {
     if (!t) return undefined;
-    return t.avatar || t.photo || t.user?.avatar || undefined;
+    return t.photo || t.user?.avatar || undefined;
   };
 
   const getAvatarColor = (name: string): string => {
@@ -65,9 +78,6 @@ const TeacherDetail = () => {
     const hue = Math.abs(hash) % 360;
     return `hsl(${hue}, 85%, 58%)`;
   };
-
-  const fullName = `${teacher?.firstName || ''} ${teacher?.lastName || ''}`.trim();
-  const initials = `${teacher?.firstName?.[0] || ''}${teacher?.lastName?.[0] || ''}` || '👨‍🏫';
 
   if (loading) {
     return (
@@ -90,6 +100,8 @@ const TeacherDetail = () => {
     );
   }
 
+  const fullName = getFullName(teacher);
+  const initials = getInitials(teacher);
   const avatarUrl = getAvatarUrl(teacher);
 
   return (
@@ -105,8 +117,6 @@ const TeacherDetail = () => {
 
         <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div className="grid md:grid-cols-5 gap-0">
-            
-            
             <div className="md:col-span-2 bg-slate-800 p-8 flex items-center justify-center">
               <div className="relative w-full max-w-[320px]">
                 {avatarUrl ? (
@@ -116,7 +126,7 @@ const TeacherDetail = () => {
                     className="w-full aspect-square object-cover rounded-2xl shadow-2xl border border-slate-700"
                   />
                 ) : (
-                  <div 
+                  <div
                     className="w-full aspect-square rounded-2xl flex items-center justify-center text-white text-8xl font-medium shadow-inner"
                     style={{ backgroundColor: getAvatarColor(fullName) }}
                   >
@@ -126,12 +136,10 @@ const TeacherDetail = () => {
               </div>
             </div>
 
-            
             <div className="md:col-span-3 p-8 md:p-12">
               <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-                {teacher.firstName} {teacher.lastName}
+                {fullName}
               </h1>
-
               <p className="text-2xl text-cyan-400 mt-2">{teacher.department}</p>
               <p className="text-xl text-slate-300 mt-1">{teacher.subject}</p>
 
@@ -148,35 +156,35 @@ const TeacherDetail = () => {
                   </div>
                 )}
 
-                {teacher.email && (
+                {teacher.user?.email && (
                   <div className="flex items-start gap-4">
                     <div className="mt-1">
                       <Mail size={24} className="text-slate-400" />
                     </div>
                     <div>
                       <p className="text-slate-400 text-sm">Email</p>
-                      <a 
-                        href={`mailto:${teacher.email}`} 
+                      <a
+                        href={`mailto:${teacher.user.email}`}
                         className="text-lg hover:text-cyan-400 transition"
                       >
-                        {teacher.email}
+                        {teacher.user.email}
                       </a>
                     </div>
                   </div>
                 )}
 
-                {teacher.phone && (
+                {teacher.user?.phone && (
                   <div className="flex items-start gap-4">
                     <div className="mt-1">
                       <Phone size={24} className="text-slate-400" />
                     </div>
                     <div>
                       <p className="text-slate-400 text-sm">Телефон</p>
-                      <a 
-                        href={`tel:${teacher.phone}`} 
+                      <a
+                        href={`tel:${teacher.user.phone}`}
                         className="text-lg hover:text-cyan-400 transition"
                       >
-                        {teacher.phone}
+                        {teacher.user.phone}
                       </a>
                     </div>
                   </div>
